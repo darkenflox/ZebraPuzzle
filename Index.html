@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Zebra Puzzle — Full Logic Grid</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+–bg:      #0e0c0a;
+–surface: #1a1714;
+–surf2:   #221f1b;
+–border:  #3a3530;
+–bord2:   #4a4540;
+–accent:  #c8a96e;
+–acc2:    #8b6e3a;
+–text:    #e8e0d0;
+–text2:   #9a8e7e;
+–pos-bg:  #162b1e;
+–pos-fg:  #5dba7a;
+–neg-bg:  #0f0e0d;
+–neg-dot: #2e2a26;
+–hover:   #252018;
+–cat0: #c8a96e;
+–cat1: #7eb8c8;
+–cat2: #b87eae;
+–cat3: #7ec89a;
+–cat4: #c87e7e;
+–sz: 30px;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘IBM Plex Mono’, monospace;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+padding: 24px 16px 60px;
+}
+
+header { text-align: center; margin-bottom: 20px; }
+h1 {
+font-family: ‘Playfair Display’, serif;
+font-weight: 900;
+font-size: clamp(1.6rem, 4vw, 2.8rem);
+color: var(–accent);
+letter-spacing: 0.06em;
+}
+.tagline {
+font-size: 0.6rem; color: var(–text2);
+letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
+}
+
+.ctrl { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
+button {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+padding: 7px 16px; border: 1px solid var(–bord2);
+background: var(–surface); color: var(–text2); cursor: pointer; transition: all 0.15s;
+}
+button:hover { border-color: var(–accent); color: var(–accent); }
+button.p { border-color: var(–acc2); color: var(–accent); }
+
+.leg {
+display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
+margin-bottom:16px; font-size:0.6rem; color:var(–text2);
+}
+.li { display:flex; align-items:center; gap:6px; }
+.ls {
+width:18px; height:18px; border:1px solid var(–bord2);
+display:flex; align-items:center; justify-content:center; font-size:0.75rem;
+}
+.lp { background:var(–pos-bg); color:var(–pos-fg); }
+.ln { background:var(–neg-bg); }
+.le { background:var(–surface); }
+
+.banner {
+max-width:860px; margin:0 auto 16px; padding:9px 20px;
+font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
+font-size:0.8rem; text-align:center; display:none; border:1px solid;
+}
+.ok  { background:#0d2015; color:var(–pos-fg); border-color:#2a6040; }
+.err { background:#200d0d; color:#c87e7e;        border-color:#602a2a; }
+.inf { background:#1a1500; color:var(–accent);  border-color:var(–acc2); }
+
+/* ── SCROLL WRAPPER ── */
+.scroll { overflow:auto; }
+
+table.grid {
+border-collapse: collapse;
+table-layout: fixed;
+}
+
+/* Dead corner */
+.dead { background:#070605; border:1px solid #181410; }
+
+/* Column headers */
+th.ch-cat {
+font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
+font-size:0.62rem; letter-spacing:0.06em;
+background:var(–surface); border:1px solid var(–border);
+text-align:center; padding:3px 2px;
+height:24px; width:var(–sz); min-width:var(–sz);
+}
+th.ch-val {
+font-size:0.52rem; color:var(–text2);
+background:var(–surface); border:1px solid var(–border);
+text-align:center; padding:0 1px;
+width:var(–sz); min-width:var(–sz); height:56px; vertical-align:bottom;
+}
+th.ch-val span {
+display:block; writing-mode:vertical-rl;
+transform:rotate(180deg); white-space:nowrap;
+padding-bottom:4px; line-height:1;
+}
+/* category boundary on columns */
+th.cb { border-left-width:2px !important; }
+
+/* Row labels */
+td.rl-cat {
+font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
+font-size:0.62rem; letter-spacing:0.06em;
+background:var(–surface); border:1px solid var(–border);
+text-align:right; padding:0 5px;
+width:62px; min-width:62px; white-space:nowrap;
+}
+td.rl-val {
+font-size:0.55rem; color:var(–text2);
+background:var(–surface); border:1px solid var(–border);
+text-align:right; padding:0 5px;
+width:62px; min-width:62px; white-space:nowrap;
+height:var(–sz);
+}
+/* category boundary on rows */
+td.rb { border-top-width:2px !important; }
+
+/* Data cells */
+td.cell {
+width:var(–sz); min-width:var(–sz); height:var(–sz);
+border:1px solid var(–border);
+cursor:pointer; text-align:center; vertical-align:middle;
+font-size:0.85rem; font-weight:600;
+position:relative; outline:none; user-select:none;
+transition:background 0.1s;
+}
+td.cell:focus { box-shadow:inset 0 0 0 2px var(–accent); z-index:2; }
+td.cell.s0  { background:var(–surface); color:transparent; }
+td.cell.s0:hover { background:var(–hover); }
+td.cell.s1  { background:var(–pos-bg); color:var(–pos-fg); }
+td.cell.s1:hover { background:#1e3a26; }
+td.cell.sm1 { background:var(–neg-bg); color:transparent; }
+td.cell.sm1:hover { background:#151210; }
+td.cell.sm1::after {
+content:’·’; position:absolute; inset:0;
+display:flex; align-items:center; justify-content:center;
+color:var(–neg-dot); font-size:1.2rem; pointer-events:none;
+}
+/* dead zone: same category */
+td.cell.dead-zone {
+background:#080604 !important; cursor:default; pointer-events:none;
+}
+td.cell.dead-zone::after { display:none; }
+/* column cat boundary */
+td.cell.cb { border-left-width:2px !important; }
+/* row cat boundary */
+td.cell.rb { border-top-width:2px !important; }
+
+/* ── CLUES ── */
+.clues { max-width:780px; margin:28px auto 0; }
+.clues h2 {
+font-family:‘Playfair Display’,serif; font-size:0.8rem;
+color:var(–accent); letter-spacing:0.15em; text-transform:uppercase;
+border-bottom:1px solid var(–bord2); padding-bottom:8px; margin-bottom:12px;
+}
+.cg { display:grid; grid-template-columns:1fr 1fr; gap:3px 28px; }
+.cl {
+font-size:0.6rem; line-height:1.6; color:var(–text2);
+display:flex; gap:7px; padding:2px 0; border-bottom:1px solid var(–border);
+}
+.cn { color:var(–acc2); font-weight:600; min-width:18px; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <h1>The Zebra Puzzle</h1>
+  <div class="tagline">Full Cross-Category Logic Grid &nbsp;·&nbsp; 5 Houses &nbsp;·&nbsp; 5 Attributes Each</div>
+</header>
+
+<div class="ctrl">
+  <button class="p" onclick="resetGrid()">Reset All</button>
+  <button onclick="checkSolution()">Check Solution</button>
+  <button onclick="revealSolution()">Reveal Answer</button>
+  <button onclick="clearMarks()">Clear Eliminations</button>
+</div>
+
+<div class="leg">
+  <div class="li"><div class="ls lp">✓</div>Yes / Confirmed</div>
+  <div class="li"><div class="ls ln"></div>Eliminated</div>
+  <div class="li"><div class="ls le"></div>Unknown</div>
+  <div class="li" style="color:#5a5248">· click cycles &nbsp;·&nbsp; +/Y = yes &nbsp;·&nbsp; -/N = no &nbsp;·&nbsp; space = clear ·</div>
+</div>
+
+<div class="banner" id="banner"></div>
+
+<div class="scroll">
+  <table class="grid" id="tbl"></table>
+</div>
+
+<div class="clues">
+  <h2>Clues</h2>
+  <div class="cg" id="cg"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const CATS = [
+  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'], color:'--cat0' },
+  { name:'Color',       vals:['Red','Blue','Ivory','Green','Yellow'],       color:'--cat1' },
+  { name:'Drink',       vals:['Tea','Coffee','Milk','OJ','Water'],          color:'--cat2' },
+  { name:'Footwear',    vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'], color:'--cat3' },
+  { name:'Pet',         vals:['Dog','Snails','Fox','Horse','Zebra'],        color:'--cat4' },
+];
+const NC=5, NV=5;
+
+// Solution [house][catIdx] = valIdx
+const SOL=[
+  [0,4,4,1,2], // H1: Dane,Yellow,Water,Sneakers,Fox
+  [3,1,0,2,3], // H2: Bolivian,Blue,Tea,Birkenst,Horse
+  [1,0,2,0,1], // H3: Scot,Red,Milk,Loafers,Snails
+  [2,2,3,3,0], // H4: Greek,Ivory,OJ,Slippers,Dog
+  [4,3,1,4,4], // H5: Japanese,Green,Coffee,Flip-flops,Zebra
+];
+// sol_house[ci][vi] = house index for that attribute value
+const SH=Array.from({length:NC},(_,ci)=>Array(NV).fill(-1));
+for(let h=0;h<NV;h++) for(let ci=0;ci<NC;ci++) SH[ci][SOL[h][ci]]=h;
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+// st[ci][vi][cj][vj]: does val vi of cat ci co-occur with val vj of cat cj?
+let st;
+function initState(){
+  st=Array.from({length:NC},()=>Array.from({length:NV},()=>
+    Array.from({length:NC},()=>Array(NV).fill(0))));
+}
+function gst(ci,vi,cj,vj){return st[ci][vi][cj][vj];}
+function sst(ci,vi,cj,vj,v){st[ci][vi][cj][vj]=v; st[cj][vj][ci][vi]=v;}
+
+// ── BUILD TABLE ───────────────────────────────────────────────────────────────
+function buildTable(){
+  const tbl=document.getElementById('tbl');
+  tbl.innerHTML='';
+
+  // ── TWO HEADER ROWS ──
+  const rA=tbl.insertRow(), rB=tbl.insertRow();
+
+  // dead corner (spans 2 cols × 2 rows)
+  const corner=document.createElement('td');
+  corner.rowSpan=2; corner.colSpan=2; corner.className='dead';
+  rA.appendChild(corner);
+
+  CATS.forEach((cat,cj)=>{
+    // Cat name header spanning NV cols
+    const thA=document.createElement('th');
+    thA.colSpan=NV; thA.className='ch-cat';
+    thA.style.color=`var(${cat.color})`;
+    thA.style.borderBottomColor=`var(${cat.color})`;
+    thA.style.borderBottomWidth='2px';
+    if(cj===0) thA.classList.add('cb');
+    thA.textContent=cat.name;
+    rA.appendChild(thA);
+
+    // Val name headers
+    cat.vals.forEach((v,vj)=>{
+      const thB=document.createElement('th');
+      thB.className='ch-val'+(vj===0?' cb':'');
+      if(vj===0){
+        thB.style.borderLeftColor=`var(${cat.color})`;
+      }
+      thB.innerHTML=`<span>${v}</span>`;
+      rB.appendChild(thB);
+    });
+  });
+
+  // ── DATA ROWS ──
+  CATS.forEach((rowCat,ci)=>{
+    rowCat.vals.forEach((val,vi)=>{
+      const row=tbl.insertRow();
+
+      // Cat label (rowspan NV, first val only)
+      if(vi===0){
+        const td=document.createElement('td');
+        td.rowSpan=NV; td.className='rl-cat rb';
+        td.style.color=`var(${rowCat.color})`;
+        td.style.borderRightColor=`var(${rowCat.color})`;
+        td.style.borderRightWidth='2px';
+        td.style.borderTopColor=`var(${rowCat.color})`;
+        td.textContent=rowCat.name;
+        row.appendChild(td);
+      }
+
+      // Val label
+      const vTd=document.createElement('td');
+      vTd.className='rl-val'+(vi===0?' rb':'');
+      if(vi===0) vTd.style.borderTopColor=`var(${rowCat.color})`;
+      vTd.textContent=val;
+      row.appendChild(vTd);
+
+      // Data cells
+      CATS.forEach((colCat,cj)=>{
+        colCat.vals.forEach((_,vj)=>{
+          const td=document.createElement('td');
+          const same=(ci===cj);
+          let cls='cell';
+          if(same) cls+=' dead-zone';
+          else cls+=' s0';
+          if(vj===0) cls+=' cb';
+          if(vi===0) cls+=' rb';
+          td.className=cls;
+          if(vj===0 && !same) td.style.borderLeftColor=`var(${colCat.color})`;
+          if(vi===0 && !same) td.style.borderTopColor=`var(${rowCat.color})`;
+          if(!same){
+            td.tabIndex=0;
+            td.dataset.ci=ci; td.dataset.vi=vi;
+            td.dataset.cj=cj; td.dataset.vj=vj;
+            td.addEventListener('click',()=>cycleCell(ci,vi,cj,vj));
+            td.addEventListener('keydown',e=>keyCell(e,ci,vi,cj,vj));
+          }
+          row.appendChild(td);
+        });
+      });
+    });
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderCell(ci,vi,cj,vj){
+  // render both orientations
+  for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
+    const td=document.querySelector(`td.cell[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`);
+    if(!td) continue;
+    const v=gst(ci,vi,cj,vj);
+    td.classList.remove('s0','s1','sm1');
+    td.classList.add(v===1?'s1':v===-1?'sm1':'s0');
+    td.textContent=v===1?'✓':'';
+  }
+}
+function renderAll(){
+  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
+    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
+      renderCell(ci,vi,cj,vj);
+}
+
+// ── LOGIC ─────────────────────────────────────────────────────────────────────
+function cycleCell(ci,vi,cj,vj){
+  const cur=gst(ci,vi,cj,vj);
+  if(cur===0) setYes(ci,vi,cj,vj);
+  else if(cur===1){ sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
+  else{ sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
+}
+function keyCell(e,ci,vi,cj,vj){
+  if(['+','y','Y'].includes(e.key)){ e.preventDefault(); setYes(ci,vi,cj,vj); }
+  else if(['-','n','N'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
+  else if([' ','Backspace','Delete'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
+}
+function setYes(ci,vi,cj,vj){
+  sst(ci,vi,cj,vj,1);
+  // eliminate other vals in same colCat for this rowVal
+  for(let v=0;v<NV;v++) if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
+  // eliminate other vals in same rowCat for this colVal
+  for(let v=0;v<NV;v++) if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
+  // re-render this sub-block
+  for(let v=0;v<NV;v++){ renderCell(ci,vi,cj,v); renderCell(ci,v,cj,vj); }
+}
+
+// ── CONTROLS ──────────────────────────────────────────────────────────────────
+function resetGrid(){ initState(); renderAll(); hideBanner(); }
+function clearMarks(){
+  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
+    for(let cj=0;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
+      if(st[ci][vi][cj][vj]===-1) st[ci][vi][cj][vj]=0;
+  renderAll();
+}
+function checkSolution(){
+  let ok=true, any=false;
+  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
+    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
+      if(gst(ci,vi,cj,vj)===1){ any=true; if(SH[ci][vi]!==SH[cj][vj]) ok=false; }
+  if(!any) return showBanner('inf','No entries yet — start solving!');
+  if(ok) showBanner('ok','✓ All confirmed entries are correct — keep going…');
+  else showBanner('err','✗ At least one entry is wrong. Review your deductions.');
+}
+function revealSolution(){
+  initState();
+  for(let ci=0;ci<NC;ci++) for(let cj=ci+1;cj<NC;cj++){
+    for(let h=0;h<NV;h++) sst(ci,SOL[h][ci],cj,SOL[h][cj],1);
+    for(let vi=0;vi<NV;vi++) for(let vj=0;vj<NV;vj++)
+      if(gst(ci,vi,cj,vj)===0) sst(ci,vi,cj,vj,-1);
+  }
+  renderAll();
+  showBanner('ok','★ Dane (H1) drinks Water · Japanese (H5) owns the Zebra');
+}
+function showBanner(type,msg){
+  const b=document.getElementById('banner');
+  b.className='banner '+type; b.textContent=msg; b.style.display='block';
+}
+function hideBanner(){ document.getElementById('banner').style.display='none'; }
+
+// ── CLUES ─────────────────────────────────────────────────────────────────────
+const CLUES=[
+  'There are five houses.',
+  'The Scot lives in the red house.',
+  'The Greek owns the dog.',
+  'Coffee is drunk in the green house.',
+  'The Bolivian drinks tea.',
+  'The green house is immediately to the right of the ivory house.',
+  'The loafer wearer owns snails.',
+  'Sneakers are worn in the yellow house.',
+  'Milk is drunk in the middle house.',
+  'The Dane lives in the first house.',
+  'The Birkenstocks wearer lives next to the person with the fox.',
+  'Sneakers are worn next to the house where the horse is kept.',
+  'The slipper wearer drinks orange juice.',
+  'The Japanese wears flip-flops.',
+  'The Dane lives next to the blue house.',
+];
+function buildClues(){
+  const cg=document.getElementById('cg');
+  CLUES.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='cl';
+    d.innerHTML=`<span class="cn">${i+1}.</span>${c}`;
+    cg.appendChild(d);
+  });
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+initState(); buildTable(); renderAll(); buildClues();
+</script>
+
+</body>
+</html>
