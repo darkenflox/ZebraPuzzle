@@ -151,12 +151,26 @@ td.cell.s1 { background-color:#e8f5e9; color:#2e7d32; }
 td.cell.s1:hover { background-color:#c8e6c9; }
 
 /* Eliminated — X mark */
-td.cell.sm1 { background-color:#fafafa; color:#ccc; }
-td.cell.sm1:hover { background-color:#f0f0f0; }
+
+td.cell.sm1 { 
+  background-color:#e0e0e0;   /* darker background */
+  color:#666;                 /* darker text */
+}
+
+td.cell.sm1:hover { 
+  background-color:#d5d5d5;   /* slightly darker on hover */
+}
+
 td.cell.sm1::after {
-content:‘✕’; position:absolute; inset:0;
-display:flex; align-items:center; justify-content:center;
-color:#ccc; font-size:0.75rem; pointer-events:none;
+  content:'✕';
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#666;                 /* darker X */
+  font-size:0.75rem;
+  pointer-events:none;
 }
 
 /* Dead zone (same-category diagonal blocks) */
