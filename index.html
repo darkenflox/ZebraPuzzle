@@ -398,47 +398,19 @@ function setYes(ci,vi,cj,vj){
     if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
   }
 
-  // 2. Propagate through ALL other category pairs:
-  //    If Dane=Yes with Tea, then for every other category ck:
-  //      - the val that Dane is confirmed with in (ci,ck) should also be confirmed with Tea in (cj,ck)
-  //    More simply: eliminate any (ck,vk) from ci's row-val vi IF that (ck,vk) is already
-  //    confirmed-NO with cj's col-val vj, and vice versa.
-  //
-  //    Actually the cleanest propagation: for every other cat ck,
-  //    eliminate other row-vals of ci from pairing with vj's confirmed partners,
-  //    and eliminate other col-vals of cj from pairing with vi's confirmed partners.
-  for(let ck=0;ck<NC;ck++){
-    if(ck===ci || ck===cj) continue;
-    // For every vk in ck:
-    // If ci[vi] confirmed YES with cj[vj], then:
-    //   - any vk that ci[vi] says YES to, cj[vj] must also say YES to (and vice versa)
-    //   - any vk that ci[vi] says NO to, cj[vj] must also say NO to (and vice versa)
-    for(let vk=0;vk<NV;vk++){
-      // If ci[vi] is NO with ck[vk], then cj[vj] must also be NO with ck[vk]
-      if(gst(ci,vi,ck,vk)===-1 && gst(cj,vj,ck,vk)!==1) sst(cj,vj,ck,vk,-1);
-      // If cj[vj] is NO with ck[vk], then ci[vi] must also be NO with ck[vk]
-      if(gst(cj,vj,ck,vk)===-1 && gst(ci,vi,ck,vk)!==1) sst(ci,vi,ck,vk,-1);
-      // If ci[vi] is YES with ck[vk], then cj[vj] must be YES with ck[vk] too
-      if(gst(ci,vi,ck,vk)===1 && gst(cj,vj,ck,vk)!==1) sst(cj,vj,ck,vk,1);
-      // If cj[vj] is YES with ck[vk], then ci[vi] must be YES with ck[vk] too
-      if(gst(cj,vj,ck,vk)===1 && gst(ci,vi,ck,vk)!==1) sst(ci,vi,ck,vk,1);
-    }
-    // Also: eliminate other vals of ci in ck if they conflict,
-    // and other vals of cj in ck
-    for(let v=0;v<NV;v++){
-      // other vals of ci's row should not pair with vj's confirmed ck partners
-      if(v!==vi){
-        for(let vk=0;vk<NV;vk++){
-          if(gst(cj,vj,ck,vk)===1 && gst(ci,v,ck,vk)!==1) sst(ci,v,ck,vk,-1);
-        }
-      }
-      if(v!==vj){
-        for(let vk=0;vk<NV;vk++){
-          if(gst(ci,vi,ck,vk)===1 && gst(cj,v,ck,vk)!==1) sst(cj,v,ck,vk,-1);
-        }
-      }
-    }
+function setYes(ci,vi,cj,vj){
+  // Mark this pair confirmed
+  sst(ci,vi,cj,vj,1);
+
+  // Only eliminate within THIS grid (no cross-category inference)
+
+  for(let v=0;v<NV;v++){
+    if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
+    if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
   }
+
+  renderAll();
+}
 
   renderAll();
 }
