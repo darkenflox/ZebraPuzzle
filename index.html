@@ -59,7 +59,7 @@ width:20px; height:20px; border:1.5px solid #bbb;
 display:flex; align-items:center; justify-content:center; font-size:0.8rem;
 }
 .lp { background-color:#e8f5e9; color:#2e7d32; border-color:#2e7d32; font-weight:700; }
-.ln { background-color:#fafafa; color:#bbb; }
+.ln { background-color:#e0e0e0; color:#666; }
 .le { background-color:#ffffff; }
 
 .banner {
@@ -79,13 +79,11 @@ table-layout: fixed;
 background-color: #ffffff;
 }
 
-/* Dead corner */
 .dead {
 background-color: #f0f0f0 !important;
 border: 1px solid #ccc;
 }
 
-/* Column category headers */
 th.ch-cat {
 font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
 font-size:0.62rem; letter-spacing:0.06em;
@@ -95,7 +93,6 @@ text-align:center; padding:3px 2px;
 height:24px; width:30px; min-width:30px;
 }
 
-/* Column value headers */
 th.ch-val {
 font-size:0.52rem; color:#555;
 background-color: #f8f8f8;
@@ -109,7 +106,6 @@ transform:rotate(180deg); white-space:nowrap;
 padding-bottom:4px; line-height:1;
 }
 
-/* Row category labels */
 td.rl-cat {
 font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
 font-size:0.62rem; letter-spacing:0.06em;
@@ -119,7 +115,6 @@ text-align:right; padding:0 6px;
 width:72px; min-width:72px; white-space:nowrap;
 }
 
-/* Row value labels */
 td.rl-val {
 font-size:0.55rem; color:#555;
 background-color: #f8f8f8;
@@ -150,30 +145,16 @@ td.cell.s0:hover { background-color:#f5f5f5; }
 td.cell.s1 { background-color:#e8f5e9; color:#2e7d32; }
 td.cell.s1:hover { background-color:#c8e6c9; }
 
-/* Eliminated — X mark */
-
-td.cell.sm1 { 
-  background-color:#e0e0e0;   /* darker background */
-  color:#666;                 /* darker text */
-}
-
-td.cell.sm1:hover { 
-  background-color:#d5d5d5;   /* slightly darker on hover */
-}
-
+/* Eliminated — grey X */
+td.cell.sm1 { background-color:#e0e0e0; color:transparent; }
+td.cell.sm1:hover { background-color:#d5d5d5; }
 td.cell.sm1::after {
-  content:'✕';
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#666;                 /* darker X */
-  font-size:0.75rem;
-  pointer-events:none;
+content:‘✕’; position:absolute; inset:0;
+display:flex; align-items:center; justify-content:center;
+color:#666; font-size:0.75rem; pointer-events:none;
 }
 
-/* Dead zone (same-category diagonal blocks) */
+/* Dead zone */
 td.cell.dz {
 background-color: #eeeeee !important;
 cursor:default; pointer-events:none;
@@ -184,7 +165,7 @@ td.cell.dz::after { display:none; }
 .bdr-l { border-left:  2px solid #888 !important; }
 .bdr-t { border-top:   2px solid #888 !important; }
 
-/* Per-category accent colors — row/col labels and header borders */
+/* Category accent colors (0–5) */
 /* 0 Nationality: indigo */
 .cc0   { color:#3949ab !important; border-right:2px solid #3949ab !important; border-bottom:2px solid #3949ab !important; }
 .cc0-l { border-left-color:#3949ab !important; border-left-width:2px !important; }
@@ -205,6 +186,10 @@ td.cell.dz::after { display:none; }
 .cc4   { color:#ad1457 !important; border-right:2px solid #ad1457 !important; border-bottom:2px solid #ad1457 !important; }
 .cc4-l { border-left-color:#ad1457 !important; border-left-width:2px !important; }
 .cc4-t { border-top-color:#ad1457 !important;  border-top-width:2px !important; }
+/* 5 House: slate blue */
+.cc5   { color:#37474f !important; border-right:2px solid #37474f !important; border-bottom:2px solid #37474f !important; }
+.cc5-l { border-left-color:#37474f !important; border-left-width:2px !important; }
+.cc5-t { border-top-color:#37474f !important;  border-top-width:2px !important; }
 
 /* Clues */
 .clues { max-width:780px; margin:28px auto 0; }
@@ -237,10 +222,10 @@ display:flex; gap:7px; padding:3px 0; border-bottom:1px solid #e0e0e0;
 </div>
 
 <div class="leg">
-  <div class="li"><div class="ls lp">✓</div>Confirmed</div>
+  <div class="li"><div class="ls lp">✓</div>Confirmed (auto-eliminates row &amp; column)</div>
   <div class="li"><div class="ls ln">✕</div>Eliminated</div>
   <div class="li"><div class="ls le"></div>Unknown</div>
-  <div class="li" style="color:#999">· click to cycle &nbsp;·&nbsp; +/Y = yes &nbsp;·&nbsp; -/N = no &nbsp;·&nbsp; space = clear ·</div>
+  <div class="li" style="color:#999">· click cycles empty → ✓ → ✕ → empty ·</div>
 </div>
 
 <div class="banner" id="banner"></div>
@@ -258,94 +243,106 @@ const CATS = [
   { name:'Drink',       vals:['Tea','Coffee','Milk','OJ','Water'],          c:2 },
   { name:'Footwear',    vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'], c:3 },
   { name:'Pet',         vals:['Dog','Snails','Fox','Horse','Zebra'],        c:4 },
-   { name:'House',       vals:['1','2','3','4','5'], c:5 },  // NEW
+  { name:'House',       vals:['1','2','3','4','5'],                         c:5 },
 ];
-const NC=6, NV=5;
+const NC = 6, NV = 5;
 
 // SOL[house][catIdx] = valIdx
-const SOL=[
-  [0,4,4,1,2], // H1: Dane,Yellow,Water,Sneakers,Fox
-  [3,1,0,2,3], // H2: Bolivian,Blue,Tea,Birkenst,Horse
-  [1,0,2,0,1], // H3: Scot,Red,Milk,Loafers,Snails
-  [2,2,3,3,0], // H4: Greek,Ivory,OJ,Slippers,Dog
-  [4,3,1,4,4], // H5: Japanese,Green,Coffee,Flip-flops,Zebra
+// House cat (index 5): house h maps to val h (house 0→val 0, etc.) — trivially each house is itself
+const SOL = [
+  [0, 4, 4, 1, 2, 0], // H1: Dane, Yellow, Water, Sneakers, Fox, House1
+  [3, 1, 0, 2, 3, 1], // H2: Bolivian, Blue, Tea, Birkenst., Horse, House2
+  [1, 0, 2, 0, 1, 2], // H3: Scot, Red, Milk, Loafers, Snails, House3
+  [2, 2, 3, 3, 0, 3], // H4: Greek, Ivory, OJ, Slippers, Dog, House4
+  [4, 3, 1, 4, 4, 4], // H5: Japanese, Green, Coffee, Flip-flops, Zebra, House5
 ];
-// SH[ci][vi] = house index for that value
-const SH=Array.from({length:NC},(_,ci)=>Array(NV).fill(-1));
-for(let h=0;h<NV;h++) for(let ci=0;ci<NC;ci++) SH[ci][SOL[h][ci]]=h;
 
-// st[ci][vi][cj][vj]: 0=unknown, 1=yes, -1=no
+// SH[ci][vi] = which house (0-4) that value belongs to
+const SH = Array.from({length: NC}, (_, ci) => Array(NV).fill(-1));
+for (let h = 0; h < NV; h++)
+  for (let ci = 0; ci < NC; ci++)
+    SH[ci][SOL[h][ci]] = h;
+
+// st[ci][vi][cj][vj]: 0=unknown, 1=yes(✓), -1=no(✕)
 let st;
-function initState(){
-  st=Array.from({length:NC},()=>Array.from({length:NV},()=>
-    Array.from({length:NC},()=>Array(NV).fill(0))));
+function initState() {
+  st = Array.from({length: NC}, () =>
+    Array.from({length: NV}, () =>
+      Array.from({length: NC}, () => Array(NV).fill(0))
+    )
+  );
 }
-function gst(ci,vi,cj,vj){ return st[ci][vi][cj][vj]; }
-function sst(ci,vi,cj,vj,v){ st[ci][vi][cj][vj]=v; st[cj][vj][ci][vi]=v; }
+function gst(ci, vi, cj, vj) { return st[ci][vi][cj][vj]; }
+function sst(ci, vi, cj, vj, v) {
+  st[ci][vi][cj][vj] = v;
+  st[cj][vj][ci][vi] = v; // mirror
+}
 
-function buildTable(){
-  const tbl=document.getElementById('tbl');
-  tbl.innerHTML='';
+// ── BUILD TABLE ────────────────────────────────────────────────────────────────
+function buildTable() {
+  const tbl = document.getElementById('tbl');
+  tbl.innerHTML = '';
 
   // Header row A: dead corner + category name headers
-  const rA=tbl.insertRow();
-  const corner=document.createElement('td');
-  corner.rowSpan=2; corner.colSpan=2; corner.className='dead';
+  const rA = tbl.insertRow();
+  const corner = document.createElement('td');
+  corner.rowSpan = 2; corner.colSpan = 2; corner.className = 'dead';
   rA.appendChild(corner);
 
-  CATS.forEach((cat,cj)=>{
-    const th=document.createElement('th');
-    th.colSpan=NV;
-    th.className='ch-cat cc'+cat.c;
-    th.textContent=cat.name;
+  CATS.forEach((cat, cj) => {
+    const th = document.createElement('th');
+    th.colSpan = NV;
+    th.className = 'ch-cat cc' + cat.c;
+    th.textContent = cat.name;
     rA.appendChild(th);
   });
 
-  // Header row B: individual value headers (rotated text)
-  const rB=tbl.insertRow();
-  CATS.forEach((cat,cj)=>{
-    cat.vals.forEach((v,vj)=>{
-      const th=document.createElement('th');
-      th.className='ch-val cc'+cj+'-l'+(vj===0?' bdr-l':'');
-      th.innerHTML=`<span>${v}</span>`;
+  // Header row B: rotated value names
+  const rB = tbl.insertRow();
+  CATS.forEach((cat, cj) => {
+    cat.vals.forEach((v, vj) => {
+      const th = document.createElement('th');
+      th.className = 'ch-val' + (vj === 0 ? ' bdr-l cc' + cj + '-l' : '');
+      th.innerHTML = `<span>${v}</span>`;
       rB.appendChild(th);
     });
   });
 
   // Data rows
-  CATS.forEach((rowCat,ci)=>{
-    rowCat.vals.forEach((val,vi)=>{
-      const row=tbl.insertRow();
+  CATS.forEach((rowCat, ci) => {
+    rowCat.vals.forEach((val, vi) => {
+      const row = tbl.insertRow();
 
-      // Category label (rowspans all NV rows)
-      if(vi===0){
-        const td=document.createElement('td');
-        td.rowSpan=NV;
-        td.className='rl-cat cc'+ci;
-        td.textContent=rowCat.name;
+      // Category label (rowspans NV rows)
+      if (vi === 0) {
+        const td = document.createElement('td');
+        td.rowSpan = NV;
+        td.className = 'rl-cat cc' + ci;
+        td.textContent = rowCat.name;
         row.appendChild(td);
       }
 
       // Value label
-      const vTd=document.createElement('td');
-      vTd.className='rl-val cc'+ci+'-t'+(vi===0?' bdr-t':'');
-      vTd.textContent=val;
+      const vTd = document.createElement('td');
+      vTd.className = 'rl-val' + (vi === 0 ? ' bdr-t cc' + ci + '-t' : '');
+      vTd.textContent = val;
       row.appendChild(vTd);
 
       // Data cells
-      CATS.forEach((colCat,cj)=>{
-        colCat.vals.forEach((_,vj)=>{
-          const td=document.createElement('td');
-          const same=(ci===cj);
-          td.className='cell'+(same?' dz':' s0')
-            +(vj===0?' bdr-l cc'+cj+'-l':'')
-            +(vi===0?' bdr-t cc'+ci+'-t':'');
-          if(!same){
-            td.tabIndex=0;
-            td.dataset.ci=ci; td.dataset.vi=vi;
-            td.dataset.cj=cj; td.dataset.vj=vj;
-            td.addEventListener('click',()=>cycleCell(ci,vi,cj,vj));
-            td.addEventListener('keydown',e=>keyCell(e,ci,vi,cj,vj));
+      CATS.forEach((colCat, cj) => {
+        colCat.vals.forEach((_, vj) => {
+          const td = document.createElement('td');
+          const same = (ci === cj);
+          td.className = 'cell' + (same ? ' dz' : ' s0')
+            + (vj === 0 ? ' bdr-l cc' + cj + '-l' : '')
+            + (vi === 0 ? ' bdr-t cc' + ci + '-t' : '');
+
+          if (!same) {
+            td.tabIndex = 0;
+            td.dataset.ci = ci; td.dataset.vi = vi;
+            td.dataset.cj = cj; td.dataset.vj = vj;
+            td.addEventListener('click', () => cycleCell(ci, vi, cj, vj));
+            td.addEventListener('keydown', e => keyCell(e, ci, vi, cj, vj));
           }
           row.appendChild(td);
         });
@@ -354,108 +351,151 @@ function buildTable(){
   });
 }
 
-function renderCell(ci,vi,cj,vj){
-  const v=gst(ci,vi,cj,vj);
-  const cls=v===1?'s1':v===-1?'sm1':'s0';
-  // render both mirrored cells
-  for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
-    const td=document.querySelector(`td.cell[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`);
-    if(!td) continue;
-    td.classList.remove('s0','s1','sm1');
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function renderCell(ci, vi, cj, vj) {
+  const v = gst(ci, vi, cj, vj);
+  const cls = v === 1 ? 's1' : v === -1 ? 'sm1' : 's0';
+  // Update both the cell and its mirror
+  for (const [a, b, c, d] of [[ci, vi, cj, vj], [cj, vj, ci, vi]]) {
+    const td = document.querySelector(
+      `td.cell[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`
+    );
+    if (!td) continue;
+    td.classList.remove('s0', 's1', 'sm1');
     td.classList.add(cls);
-    td.textContent = v===1 ? '✓' : '';
+    td.textContent = v === 1 ? '✓' : '';
   }
 }
-function renderAll(){
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      renderCell(ci,vi,cj,vj);
+
+function renderAll() {
+  for (let ci = 0; ci < NC; ci++)
+    for (let vi = 0; vi < NV; vi++)
+      for (let cj = ci + 1; cj < NC; cj++)
+        for (let vj = 0; vj < NV; vj++)
+          renderCell(ci, vi, cj, vj);
 }
 
-function cycleCell(ci,vi,cj,vj){
-  const cur=gst(ci,vi,cj,vj);
-  if(cur===0) setYes(ci,vi,cj,vj);
-  else if(cur===1){ sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
-  else { sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
+// ── INTERACTION ────────────────────────────────────────────────────────────────
+function cycleCell(ci, vi, cj, vj) {
+  const cur = gst(ci, vi, cj, vj);
+
+  if (cur === 0)      setNo(ci, vi, cj, vj);     // empty → ✕
+  else if (cur === -1) setYes(ci, vi, cj, vj);   // ✕ → ✓
+  else                setEmpty(ci, vi, cj, vj);  // ✓ → empty
 }
 
-function keyCell(e,ci,vi,cj,vj){
-  if(['+','y','Y'].includes(e.key)){ e.preventDefault(); setYes(ci,vi,cj,vj); }
-  else if(['-','n','N'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
-  else if([' ','Backspace','Delete'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
+function keyCell(e, ci, vi, cj, vj) {
+  if (['+', 'y', 'Y'].includes(e.key))              { e.preventDefault(); setYes(ci, vi, cj, vj); }
+  else if (['-', 'n', 'N'].includes(e.key))          { e.preventDefault(); setNo(ci, vi, cj, vj); }
+  else if ([' ', 'Backspace', 'Delete'].includes(e.key)) { e.preventDefault(); setEmpty(ci, vi, cj, vj); }
 }
 
-function setYes(ci,vi,cj,vj){
-  // Mark this pair confirmed
-  sst(ci,vi,cj,vj,1);
+function setEmpty(ci, vi, cj, vj) {
+  sst(ci, vi, cj, vj, 0);
+  renderCell(ci, vi, cj, vj);
+}
 
-  // ── KEY CHANGE: eliminate across ALL category pairs, not just this block ──
+function setNo(ci, vi, cj, vj) {
+  sst(ci, vi, cj, vj, -1);
+  renderCell(ci, vi, cj, vj);
+}
 
-  // 1. Within the (ci,cj) block: eliminate other col-vals for this row-val,
-  //    and other row-vals for this col-val
-  for(let v=0;v<NV;v++){
-    if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
-    if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
+function setYes(ci, vi, cj, vj) {
+  sst(ci, vi, cj, vj, 1);
+
+  // Within this sub-block: eliminate the rest of the row and column
+  // i.e. "ci's vi cannot pair with any other val in cj" and vice versa
+  for (let v = 0; v < NV; v++) {
+    if (v !== vj && gst(ci, vi, cj, v) !== 1) sst(ci, vi, cj, v, -1);
+    if (v !== vi && gst(ci, v, cj, vj) !== 1) sst(ci, v, cj, vj, -1);
   }
 
-function setYes(ci,vi,cj,vj){
-  // Mark this pair confirmed
-  sst(ci,vi,cj,vj,1);
-
-  // Only eliminate within THIS grid (no cross-category inference)
-
-  for(let v=0;v<NV;v++){
-    if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
-    if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
-  }
-
-  renderAll();
-}
-
-  renderAll();
-}
-
-function resetGrid(){ initState(); renderAll(); hideBanner(); }
-
-function clearMarks(){
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=0;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      if(st[ci][vi][cj][vj]===-1) st[ci][vi][cj][vj]=0;
-  renderAll();
-}
-
-function checkSolution(){
-  let ok=true, any=false;
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      if(gst(ci,vi,cj,vj)===1){
-        any=true;
-        if(SH[ci][vi]!==SH[cj][vj]) ok=false;
+  // Cross-category propagation:
+  // If A=vi is confirmed with B=vj, then for every other category C:
+  //   - whatever A=vi is confirmed with in C, B=vj must also be confirmed with in C
+  //   - whatever A=vi is eliminated from in C, B=vj must also be eliminated from in C
+  for (let ck = 0; ck < NC; ck++) {
+    if (ck === ci || ck === cj) continue;
+    for (let vk = 0; vk < NV; vk++) {
+      const aVal = gst(ci, vi, ck, vk);
+      const bVal = gst(cj, vj, ck, vk);
+      // If A=vi says YES to C=vk, then B=vj must also say YES to C=vk
+      if (aVal === 1  && bVal !== 1)  sst(cj, vj, ck, vk, 1);
+      // If A=vi says NO  to C=vk, then B=vj must also say NO  to C=vk
+      if (aVal === -1 && bVal !== 1)  sst(cj, vj, ck, vk, -1);
+      // And the reverse
+      if (bVal === 1  && aVal !== 1)  sst(ci, vi, ck, vk, 1);
+      if (bVal === -1 && aVal !== 1)  sst(ci, vi, ck, vk, -1);
+    }
+    // Eliminate other vals: no other row-val of ci can share cj's partner in ck
+    for (let v = 0; v < NV; v++) {
+      if (v !== vi) {
+        for (let vk = 0; vk < NV; vk++) {
+          if (gst(cj, vj, ck, vk) === 1 && gst(ci, v, ck, vk) !== 1)
+            sst(ci, v, ck, vk, -1);
+        }
       }
-  if(!any) return showBanner('inf','No entries yet — start solving!');
-  showBanner(ok?'ok':'err',
+      if (v !== vj) {
+        for (let vk = 0; vk < NV; vk++) {
+          if (gst(ci, vi, ck, vk) === 1 && gst(cj, v, ck, vk) !== 1)
+            sst(cj, v, ck, vk, -1);
+        }
+      }
+    }
+  }
+
+  renderAll();
+}
+
+// ── CONTROLS ───────────────────────────────────────────────────────────────────
+function resetGrid() { initState(); renderAll(); hideBanner(); }
+
+function clearMarks() {
+  for (let ci = 0; ci < NC; ci++)
+    for (let vi = 0; vi < NV; vi++)
+      for (let cj = 0; cj < NC; cj++)
+        for (let vj = 0; vj < NV; vj++)
+          if (st[ci][vi][cj][vj] === -1) st[ci][vi][cj][vj] = 0;
+  renderAll();
+}
+
+function checkSolution() {
+  let ok = true, any = false;
+  for (let ci = 0; ci < NC; ci++)
+    for (let vi = 0; vi < NV; vi++)
+      for (let cj = ci + 1; cj < NC; cj++)
+        for (let vj = 0; vj < NV; vj++)
+          if (gst(ci, vi, cj, vj) === 1) {
+            any = true;
+            if (SH[ci][vi] !== SH[cj][vj]) ok = false;
+          }
+  if (!any) return showBanner('inf', 'No entries yet — start solving!');
+  showBanner(ok ? 'ok' : 'err',
     ok ? '✓ All confirmed entries are correct — keep going…'
        : '✗ At least one entry is wrong. Review your deductions.');
 }
 
-function revealSolution(){
+function revealSolution() {
   initState();
-  for(let ci=0;ci<NC;ci++) for(let cj=ci+1;cj<NC;cj++){
-    for(let h=0;h<NV;h++) sst(ci,SOL[h][ci],cj,SOL[h][cj],1);
-    for(let vi=0;vi<NV;vi++) for(let vj=0;vj<NV;vj++)
-      if(gst(ci,vi,cj,vj)===0) sst(ci,vi,cj,vj,-1);
-  }
+  for (let ci = 0; ci < NC; ci++)
+    for (let cj = ci + 1; cj < NC; cj++) {
+      for (let h = 0; h < NV; h++) sst(ci, SOL[h][ci], cj, SOL[h][cj], 1);
+      for (let vi = 0; vi < NV; vi++)
+        for (let vj = 0; vj < NV; vj++)
+          if (gst(ci, vi, cj, vj) === 0) sst(ci, vi, cj, vj, -1);
+    }
   renderAll();
-  showBanner('ok','★ Dane (H1) drinks Water · Japanese (H5) owns the Zebra');
+  showBanner('ok', '★ Dane (H1) drinks Water · Japanese (H5) owns the Zebra');
 }
 
-function showBanner(type,msg){
-  const b=document.getElementById('banner');
-  b.className='banner '+type; b.textContent=msg; b.style.display='block';
+function showBanner(type, msg) {
+  const b = document.getElementById('banner');
+  b.className = 'banner ' + type; b.textContent = msg; b.style.display = 'block';
 }
-function hideBanner(){ document.getElementById('banner').style.display='none'; }
+function hideBanner() { document.getElementById('banner').style.display = 'none'; }
 
-const CLUES=[
+// ── CLUES ──────────────────────────────────────────────────────────────────────
+const CLUES = [
   'There are five houses.',
   'The Scot lives in the red house.',
   'The Greek owns the dog.',
@@ -472,12 +512,12 @@ const CLUES=[
   'The Japanese wears flip-flops.',
   'The Dane lives next to the blue house.',
 ];
-function buildClues(){
-  const cg=document.getElementById('cg');
-  CLUES.forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className='cl';
-    d.innerHTML=`<span class="cn">${i+1}.</span>${c}`;
+function buildClues() {
+  const cg = document.getElementById('cg');
+  CLUES.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'cl';
+    d.innerHTML = `<span class="cn">${i + 1}.</span>${c}`;
     cg.appendChild(d);
   });
 }
