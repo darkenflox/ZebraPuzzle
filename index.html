@@ -1,336 +1,171 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Zebra Puzzle</title>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-/* Force dark background on everything */
-html, body {
-background-color: #0e0c0a !important;
-color: #e8e0d0;
-margin: 0; padding: 0;
-min-height: 100vh;
-}
-
-- { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
-font-family: ‘IBM Plex Mono’, monospace;
-background-color: #0e0c0a;
-color: #e8e0d0;
-padding: 24px 16px 60px;
+  font-family: 'IBM Plex Mono', monospace;
+  background:#fff;
+  margin:0;
+  padding:24px 16px 60px;
 }
 
-header { text-align: center; margin-bottom: 20px; }
+header { text-align:center; margin-bottom:20px; }
+
 h1 {
-font-family: ‘Playfair Display’, serif;
-font-weight: 900;
-font-size: clamp(1.6rem, 4vw, 2.8rem);
-color: #c8a96e;
-letter-spacing: 0.06em;
-}
-.tagline {
-font-size: 0.6rem; color: #9a8e7e;
-letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
+  font-family:'Playfair Display', serif;
+  font-weight:900;
+  font-size:2rem;
 }
 
-.ctrl { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
+.ctrl {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-bottom:14px;
+}
+
 button {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
-padding: 7px 16px;
-border: 1px solid #4a4540;
-background-color: #1a1714;
-color: #c8a96e;
-cursor: pointer;
-transition: all 0.15s;
+  font-size:0.6rem;
+  padding:7px 16px;
+  border:1.5px solid #1a1a1a;
+  background:#fff;
+  cursor:pointer;
 }
-button:hover { border-color: #c8a96e; background-color: #221f1b; }
 
-.leg {
-display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
-margin-bottom:16px; font-size:0.6rem; color:#9a8e7e;
+button:hover {
+  background:#1a1a1a;
+  color:#fff;
 }
-.li { display:flex; align-items:center; gap:6px; }
-.ls {
-width:18px; height:18px; border:1px solid #4a4540;
-display:flex; align-items:center; justify-content:center; font-size:0.75rem;
+
+/* Highlight toggle button */
+#autoBtn {
+  border-color:#2e7d32;
+  color:#2e7d32;
 }
-.lp { background-color:#162b1e; color:#5dba7a; }
-.ln { background-color:#0f0e0d; }
-.le { background-color:#1a1714; }
 
-.banner {
-max-width:900px; margin:0 auto 16px; padding:9px 20px;
-font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
-font-size:0.8rem; text-align:center; display:none; border:1px solid;
-}
-.ok  { background-color:#0d2015; color:#5dba7a; border-color:#2a6040; }
-.err { background-color:#200d0d; color:#c87e7e; border-color:#602a2a; }
-.inf { background-color:#1a1500; color:#c8a96e; border-color:#8b6e3a; }
-
-.scroll { overflow:auto; }
-
+/* Grid */
 table.grid {
-border-collapse: collapse;
-table-layout: fixed;
-background-color: #0e0c0a;
+  border-collapse:collapse;
 }
 
-/* Dead corner */
-.dead {
-background-color: #070605 !important;
-border: 1px solid #181410;
+td, th {
+  border:1px solid #ccc;
 }
 
-/* Column category name headers */
-th.ch-cat {
-font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
-font-size:0.62rem; letter-spacing:0.06em;
-background-color: #1a1714;
-border: 1px solid #3a3530;
-text-align:center; padding:3px 2px;
-height:24px; width:30px; min-width:30px;
-}
-
-/* Column value name headers */
-th.ch-val {
-font-size:0.52rem; color:#9a8e7e;
-background-color: #1a1714;
-border: 1px solid #3a3530;
-text-align:center; padding:0 1px;
-width:30px; min-width:30px; height:60px; vertical-align:bottom;
-}
-th.ch-val span {
-display:block; writing-mode:vertical-rl;
-transform:rotate(180deg); white-space:nowrap;
-padding-bottom:4px; line-height:1;
-}
-
-/* Row category labels */
-td.rl-cat {
-font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
-font-size:0.62rem; letter-spacing:0.06em;
-background-color: #1a1714;
-border: 1px solid #3a3530;
-text-align:right; padding:0 5px;
-width:68px; min-width:68px; white-space:nowrap;
-}
-
-/* Row value labels */
-td.rl-val {
-font-size:0.55rem; color:#9a8e7e;
-background-color: #1a1714;
-border: 1px solid #3a3530;
-text-align:right; padding:0 5px;
-width:68px; min-width:68px; white-space:nowrap;
-height:30px;
-}
-
-/* Data cells — base */
 td.cell {
-width:30px; min-width:30px; height:30px;
-border: 1px solid #3a3530;
-cursor:pointer; text-align:center; vertical-align:middle;
-font-size:0.85rem; font-weight:600;
-position:relative; outline:none; user-select:none;
-transition:background-color 0.1s;
-background-color: #1a1714;
-color: transparent;
+  width:30px;
+  height:30px;
+  text-align:center;
+  cursor:pointer;
+  font-weight:700;
 }
-td.cell:focus { box-shadow:inset 0 0 0 2px #c8a96e; z-index:2; }
 
 /* States */
-td.cell.s0  { background-color: #1a1714; color: transparent; }
-td.cell.s0:hover { background-color: #252018; }
-td.cell.s1  { background-color: #162b1e; color: #5dba7a; }
-td.cell.s1:hover { background-color: #1e3a26; }
-td.cell.sm1 { background-color: #111010; color: transparent; }
-td.cell.sm1:hover { background-color: #161310; }
+td.cell.s0 { background:#fff; }
+
+td.cell.s1 {
+  background:#e8f5e9;
+  color:#2e7d32;
+}
+
+td.cell.sm1 {
+  background:#f5f5f5;
+}
+
 td.cell.sm1::after {
-content:’·’; position:absolute; inset:0;
-display:flex; align-items:center; justify-content:center;
-color:#2e2a26; font-size:1.2rem; pointer-events:none;
+  content:'✕';
+  color:#444;
+  font-weight:700;
 }
 
-/* Dead zone (same category diagonal) */
+/* Dead zone */
 td.cell.dz {
-background-color: #080604 !important;
-cursor:default; pointer-events:none;
+  background:#eee;
+  pointer-events:none;
 }
-td.cell.dz::after { display:none; }
 
-/* Category boundary lines */
-.bdr-l { border-left:  2px solid #4a4540 !important; }
-.bdr-t { border-top:   2px solid #4a4540 !important; }
-
-/* Category color accents on borders */
-.cc0-l { border-left-color:  #c8a96e !important; }
-.cc0-t { border-top-color:   #c8a96e !important; }
-.cc0    { color: #c8a96e !important; border-right: 2px solid #c8a96e !important; border-bottom: 2px solid #c8a96e !important; }
-.cc1-l { border-left-color:  #7eb8c8 !important; }
-.cc1-t { border-top-color:   #7eb8c8 !important; }
-.cc1    { color: #7eb8c8 !important; border-right: 2px solid #7eb8c8 !important; border-bottom: 2px solid #7eb8c8 !important; }
-.cc2-l { border-left-color:  #b87eae !important; }
-.cc2-t { border-top-color:   #b87eae !important; }
-.cc2    { color: #b87eae !important; border-right: 2px solid #b87eae !important; border-bottom: 2px solid #b87eae !important; }
-.cc3-l { border-left-color:  #7ec89a !important; }
-.cc3-t { border-top-color:   #7ec89a !important; }
-.cc3    { color: #7ec89a !important; border-right: 2px solid #7ec89a !important; border-bottom: 2px solid #7ec89a !important; }
-.cc4-l { border-left-color:  #c87e7e !important; }
-.cc4-t { border-top-color:   #c87e7e !important; }
-.cc4    { color: #c87e7e !important; border-right: 2px solid #c87e7e !important; border-bottom: 2px solid #c87e7e !important; }
-
-/* Clues */
-.clues { max-width:780px; margin:28px auto 0; }
-.clues h2 {
-font-family:‘Playfair Display’,serif; font-size:0.8rem;
-color:#c8a96e; letter-spacing:0.15em; text-transform:uppercase;
-border-bottom:1px solid #4a4540; padding-bottom:8px; margin-bottom:12px;
-}
-.cg { display:grid; grid-template-columns:1fr 1fr; gap:3px 28px; }
-.cl {
-font-size:0.6rem; line-height:1.6; color:#9a8e7e;
-display:flex; gap:7px; padding:2px 0; border-bottom:1px solid #3a3530;
-}
-.cn { color:#8b6e3a; font-weight:600; min-width:18px; }
 </style>
-
 </head>
+
 <body>
 
 <header>
   <h1>The Zebra Puzzle</h1>
-  <div class="tagline">Full Cross-Category Logic Grid &nbsp;·&nbsp; 5 Houses &nbsp;·&nbsp; 5 Attributes Each</div>
 </header>
 
 <div class="ctrl">
-  <button onclick="resetGrid()">Reset All</button>
-  <button onclick="checkSolution()">Check Solution</button>
-  <button onclick="revealSolution()">Reveal Answer</button>
-  <button onclick="clearMarks()">Clear Eliminations</button>
+  <button onclick="resetGrid()">Reset</button>
+  <button id="autoBtn" onclick="toggleAuto()">Auto-Eliminate: ON</button>
 </div>
 
-<div class="leg">
-  <div class="li"><div class="ls lp">✓</div>Yes / Confirmed</div>
-  <div class="li"><div class="ls ln"></div>Eliminated</div>
-  <div class="li"><div class="ls le"></div>Unknown</div>
-  <div class="li" style="color:#5a5248">· click to cycle &nbsp;·&nbsp; +/Y = yes &nbsp;·&nbsp; -/N = no &nbsp;·&nbsp; space = clear ·</div>
-</div>
-
-<div class="banner" id="banner"></div>
-<div class="scroll"><table class="grid" id="tbl"></table></div>
-
-<div class="clues">
-  <h2>Clues</h2>
-  <div class="cg" id="cg"></div>
-</div>
+<table class="grid" id="tbl"></table>
 
 <script>
 const CATS = [
-  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'], c:0 },
-  { name:'Color',       vals:['Red','Blue','Ivory','Green','Yellow'],       c:1 },
-  { name:'Drink',       vals:['Tea','Coffee','Milk','OJ','Water'],          c:2 },
-  { name:'Footwear',    vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'], c:3 },
-  { name:'Pet',         vals:['Dog','Snails','Fox','Horse','Zebra'],        c:4 },
+  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'] },
+  { name:'Color', vals:['Red','Blue','Ivory','Green','Yellow'] },
+  { name:'Drink', vals:['Tea','Coffee','Milk','OJ','Water'] },
+  { name:'Footwear', vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'] },
+  { name:'Pet', vals:['Dog','Snails','Fox','Horse','Zebra'] },
 ];
+
 const NC=5, NV=5;
 
-// Solution: SOL[house][catIdx] = valIdx
-const SOL=[
-  [0,4,4,1,2], // H1: Dane,Yellow,Water,Sneakers,Fox
-  [3,1,0,2,3], // H2: Bolivian,Blue,Tea,Birkenst,Horse
-  [1,0,2,0,1], // H3: Scot,Red,Milk,Loafers,Snails
-  [2,2,3,3,0], // H4: Greek,Ivory,OJ,Slippers,Dog
-  [4,3,1,4,4], // H5: Japanese,Green,Coffee,Flip-flops,Zebra
-];
-// SH[ci][vi] = house index
-const SH=Array.from({length:NC},(_,ci)=>Array(NV).fill(-1));
-for(let h=0;h<NV;h++) for(let ci=0;ci<NC;ci++) SH[ci][SOL[h][ci]]=h;
+let AUTO = true;
 
-// State: st[ci][vi][cj][vj]
 let st;
+
 function initState(){
-  st=Array.from({length:NC},()=>Array.from({length:NV},()=>
-    Array.from({length:NC},()=>Array(NV).fill(0))));
+  st = Array.from({length:NC},()=>Array.from({length:NV},()=>
+    Array.from({length:NC},()=>Array(NV).fill(0))
+  ));
 }
-function gst(ci,vi,cj,vj){return st[ci][vi][cj][vj];}
-function sst(ci,vi,cj,vj,v){st[ci][vi][cj][vj]=v; st[cj][vj][ci][vi]=v;}
+
+function gst(ci,vi,cj,vj){ return st[ci][vi][cj][vj]; }
+
+function sst(ci,vi,cj,vj,v){
+  st[ci][vi][cj][vj]=v;
+  st[cj][vj][ci][vi]=v;
+}
+
+function toggleAuto(){
+  AUTO = !AUTO;
+  document.getElementById('autoBtn').textContent =
+    'Auto-Eliminate: ' + (AUTO ? 'ON' : 'OFF');
+}
 
 function buildTable(){
   const tbl=document.getElementById('tbl');
   tbl.innerHTML='';
 
-  // Row A: dead corner + category name headers
-  const rA=tbl.insertRow();
-  const corner=document.createElement('td');
-  corner.rowSpan=2; corner.colSpan=2; corner.className='dead';
-  rA.appendChild(corner);
-
-  CATS.forEach((cat,cj)=>{
-    const th=document.createElement('th');
-    th.colSpan=NV;
-    th.className='ch-cat cc'+cat.c;
-    // add left border at each category start
-    if(cj>0) th.classList.add('bdr-l','cc'+cj+'-l');
-    th.textContent=cat.name;
-    rA.appendChild(th);
-  });
-
-  // Row B: value name headers (rotated)
-  const rB=tbl.insertRow();
-  CATS.forEach((cat,cj)=>{
-    cat.vals.forEach((v,vj)=>{
-      const th=document.createElement('th');
-      th.className='ch-val';
-      if(vj===0) th.classList.add('bdr-l','cc'+cj+'-l');
-      th.style.color = ['#c8a96e','#7eb8c8','#b87eae','#7ec89a','#c87e7e'][cj];
-      th.innerHTML=`<span>${v}</span>`;
-      rB.appendChild(th);
-    });
-  });
-
-  // Data rows
   CATS.forEach((rowCat,ci)=>{
     rowCat.vals.forEach((val,vi)=>{
       const row=tbl.insertRow();
 
-      // Category label cell (rowspan NV)
-      if(vi===0){
-        const td=document.createElement('td');
-        td.rowSpan=NV;
-        td.className='rl-cat cc'+ci;
-        td.textContent=rowCat.name;
-        row.appendChild(td);
-      }
-
-      // Value label cell
-      const vTd=document.createElement('td');
-      vTd.className='rl-val';
-      if(vi===0) vTd.classList.add('bdr-t','cc'+ci+'-t');
-      vTd.style.color = ['#c8a96e','#7eb8c8','#b87eae','#7ec89a','#c87e7e'][ci];
-      vTd.textContent=val;
-      row.appendChild(vTd);
-
-      // Data cells
       CATS.forEach((colCat,cj)=>{
         colCat.vals.forEach((_,vj)=>{
           const td=document.createElement('td');
-          const same=(ci===cj);
-          td.className='cell'+(same?' dz':' s0');
-          if(vj===0) td.classList.add('bdr-l','cc'+cj+'-l');
-          if(vi===0) td.classList.add('bdr-t','cc'+ci+'-t');
+
+          const same = ci===cj;
+
+          td.className = 'cell ' + (same?'dz':'s0');
+
           if(!same){
-            td.tabIndex=0;
-            td.dataset.ci=ci; td.dataset.vi=vi;
-            td.dataset.cj=cj; td.dataset.vj=vj;
-            td.addEventListener('click',()=>cycleCell(ci,vi,cj,vj));
-            td.addEventListener('keydown',e=>keyCell(e,ci,vi,cj,vj));
+            td.dataset.ci=ci;
+            td.dataset.vi=vi;
+            td.dataset.cj=cj;
+            td.dataset.vj=vj;
+
+            td.onclick = ()=>cycleCell(ci,vi,cj,vj);
           }
+
           row.appendChild(td);
         });
       });
@@ -339,101 +174,78 @@ function buildTable(){
 }
 
 function renderCell(ci,vi,cj,vj){
-  const v=gst(ci,vi,cj,vj);
-  const cls = v===1?'s1':v===-1?'sm1':'s0';
+  const val = gst(ci,vi,cj,vj);
+
   for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
-    const td=document.querySelector(`td.cell[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`);
+    const td = document.querySelector(
+      `td[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`
+    );
     if(!td) continue;
+
     td.classList.remove('s0','s1','sm1');
-    td.classList.add(cls);
-    td.textContent = v===1 ? '✓' : '';
+
+    if(val===1){
+      td.classList.add('s1');
+      td.textContent='✓';
+    } else if(val===-1){
+      td.classList.add('sm1');
+      td.textContent='';
+    } else {
+      td.classList.add('s0');
+      td.textContent='';
+    }
   }
 }
+
 function renderAll(){
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      renderCell(ci,vi,cj,vj);
+  for(let ci=0;ci<NC;ci++)
+    for(let vi=0;vi<NV;vi++)
+      for(let cj=ci+1;cj<NC;cj++)
+        for(let vj=0;vj<NV;vj++)
+          renderCell(ci,vi,cj,vj);
 }
 
 function cycleCell(ci,vi,cj,vj){
-  const cur=gst(ci,vi,cj,vj);
-  if(cur===0) setYes(ci,vi,cj,vj);
-  else if(cur===1){ sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
-  else{ sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
+  const cur = gst(ci,vi,cj,vj);
+
+  if(cur===0){
+    if(AUTO){
+      setYes(ci,vi,cj,vj);
+    } else {
+      sst(ci,vi,cj,vj,1);
+      renderCell(ci,vi,cj,vj);
+    }
+  }
+  else if(cur===1){
+    sst(ci,vi,cj,vj,-1);
+    renderCell(ci,vi,cj,vj);
+  }
+  else{
+    sst(ci,vi,cj,vj,0);
+    renderCell(ci,vi,cj,vj);
+  }
 }
-function keyCell(e,ci,vi,cj,vj){
-  if(['+','y','Y'].includes(e.key)){ e.preventDefault(); setYes(ci,vi,cj,vj); }
-  else if(['-','n','N'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,-1); renderCell(ci,vi,cj,vj); }
-  else if([' ','Backspace','Delete'].includes(e.key)){ e.preventDefault(); sst(ci,vi,cj,vj,0); renderCell(ci,vi,cj,vj); }
-}
+
 function setYes(ci,vi,cj,vj){
   sst(ci,vi,cj,vj,1);
-  for(let v=0;v<NV;v++) if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
-  for(let v=0;v<NV;v++) if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
-  for(let v=0;v<NV;v++){ renderCell(ci,vi,cj,v); renderCell(ci,v,cj,vj); }
-}
 
-function resetGrid(){ initState(); renderAll(); hideBanner(); }
-function clearMarks(){
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=0;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      if(st[ci][vi][cj][vj]===-1) st[ci][vi][cj][vj]=0;
-  renderAll();
-}
-function checkSolution(){
-  let ok=true, any=false;
-  for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
-    for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
-      if(gst(ci,vi,cj,vj)===1){ any=true; if(SH[ci][vi]!==SH[cj][vj]) ok=false; }
-  if(!any) return showBanner('inf','No entries yet — start solving!');
-  showBanner(ok?'ok':'err', ok
-    ? '✓ All confirmed entries are correct — keep going…'
-    : '✗ At least one entry is wrong. Review your deductions.');
-}
-function revealSolution(){
-  initState();
-  for(let ci=0;ci<NC;ci++) for(let cj=ci+1;cj<NC;cj++){
-    for(let h=0;h<NV;h++) sst(ci,SOL[h][ci],cj,SOL[h][cj],1);
-    for(let vi=0;vi<NV;vi++) for(let vj=0;vj<NV;vj++)
-      if(gst(ci,vi,cj,vj)===0) sst(ci,vi,cj,vj,-1);
+  for(let v=0;v<NV;v++){
+    if(v!==vj) sst(ci,vi,cj,v,-1);
+    if(v!==vi) sst(ci,v,cj,vj,-1);
   }
+
   renderAll();
-  showBanner('ok','★ Dane (H1) drinks Water · Japanese (H5) owns the Zebra');
-}
-function showBanner(type,msg){
-  const b=document.getElementById('banner');
-  b.className='banner '+type; b.textContent=msg; b.style.display='block';
-}
-function hideBanner(){ document.getElementById('banner').style.display='none'; }
-
-const CLUES=[
-  'There are five houses.',
-  'The Scot lives in the red house.',
-  'The Greek owns the dog.',
-  'Coffee is drunk in the green house.',
-  'The Bolivian drinks tea.',
-  'The green house is immediately to the right of the ivory house.',
-  'The loafer wearer owns snails.',
-  'Sneakers are worn in the yellow house.',
-  'Milk is drunk in the middle house.',
-  'The Dane lives in the first house.',
-  'The Birkenstocks wearer lives next to the person with the fox.',
-  'Sneakers are worn next to the house where the horse is kept.',
-  'The slipper wearer drinks orange juice.',
-  'The Japanese wears flip-flops.',
-  'The Dane lives next to the blue house.',
-];
-function buildClues(){
-  const cg=document.getElementById('cg');
-  CLUES.forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className='cl';
-    d.innerHTML=`<span class="cn">${i+1}.</span>${c}`;
-    cg.appendChild(d);
-  });
 }
 
-initState(); buildTable(); renderAll(); buildClues();
+function resetGrid(){
+  initState();
+  renderAll();
+}
+
+initState();
+buildTable();
+renderAll();
+
 </script>
 
 </body>
