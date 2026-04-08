@@ -401,17 +401,8 @@ function setNo(ci, vi, cj, vj) {
 }
 
 function setYes(ci, vi, cj, vj) {
-  sst(ci, vi, cj, vj, 1);
-
-  // Within this sub-block: eliminate the rest of the row and column
-  // i.e. "ci's vi cannot pair with any other val in cj" and vice versa
-  for (let v = 0; v < NV; v++) {
-    if (v !== vj && gst(ci, vi, cj, v) !== 1) sst(ci, vi, cj, v, -1);
-    if (v !== vi && gst(ci, v, cj, vj) !== 1) sst(ci, v, cj, vj, -1);
-  }
-
-
-  renderAll();
+  sst(ci, vi, cj, vj, 1);   // just set ✓
+  renderCell(ci, vi, cj, vj); // only update this cell
 }
 
 // ── CONTROLS ───────────────────────────────────────────────────────────────────
