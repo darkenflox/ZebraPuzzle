@@ -9,86 +9,84 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 body {
-  font-family: 'IBM Plex Mono', monospace;
-  background:#fff;
-  margin:0;
-  padding:24px 16px 60px;
+font-family:'IBM Plex Mono', monospace;
+background:#fff;
+margin:0;
+padding:24px 16px 60px;
 }
 
 header { text-align:center; margin-bottom:20px; }
 
 h1 {
-  font-family:'Playfair Display', serif;
-  font-weight:900;
-  font-size:2rem;
+font-family:'Playfair Display', serif;
+font-weight:900;
+font-size:clamp(1.6rem,4vw,2.8rem);
 }
 
 .ctrl {
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:center;
-  margin-bottom:14px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+margin-bottom:14px;
 }
 
 button {
-  font-size:0.6rem;
-  padding:7px 16px;
-  border:1.5px solid #1a1a1a;
-  background:#fff;
-  cursor:pointer;
+font-size:0.6rem;
+padding:7px 16px;
+border:1.5px solid #1a1a1a;
+background:#fff;
+cursor:pointer;
 }
 
 button:hover {
-  background:#1a1a1a;
-  color:#fff;
+background:#1a1a1a;
+color:#fff;
 }
 
-/* Highlight toggle button */
 #autoBtn {
-  border-color:#2e7d32;
-  color:#2e7d32;
+border-color:#2e7d32;
+color:#2e7d32;
 }
 
-/* Grid */
 table.grid {
-  border-collapse:collapse;
+border-collapse:collapse;
+margin:auto;
 }
 
 td, th {
-  border:1px solid #ccc;
+border:1px solid #ccc;
 }
 
 td.cell {
-  width:30px;
-  height:30px;
-  text-align:center;
-  cursor:pointer;
-  font-weight:700;
+width:30px;
+height:30px;
+text-align:center;
+cursor:pointer;
+font-weight:700;
+position:relative;
 }
 
-/* States */
 td.cell.s0 { background:#fff; }
 
 td.cell.s1 {
-  background:#e8f5e9;
-  color:#2e7d32;
+background:#e8f5e9;
+color:#2e7d32;
 }
 
 td.cell.sm1 {
-  background:#f5f5f5;
+background:#f5f5f5;
 }
 
 td.cell.sm1::after {
-  content:'✕';
-  color:#444;
-  font-weight:700;
+content:'✕';
+color:#444;
+font-weight:700;
 }
 
-/* Dead zone */
 td.cell.dz {
-  background:#eee;
-  pointer-events:none;
+background:#eee;
+pointer-events:none;
 }
 
 </style>
@@ -97,23 +95,26 @@ td.cell.dz {
 <body>
 
 <header>
-  <h1>The Zebra Puzzle</h1>
+<h1>The Zebra Puzzle</h1>
 </header>
 
 <div class="ctrl">
-  <button onclick="resetGrid()">Reset</button>
-  <button id="autoBtn" onclick="toggleAuto()">Auto-Eliminate: ON</button>
+<button onclick="resetGrid()">Reset</button>
+<button onclick="clearMarks()">Clear X</button>
+<button id="autoBtn" onclick="toggleAuto()">Auto-Eliminate: ON</button>
 </div>
 
+<div style="overflow:auto">
 <table class="grid" id="tbl"></table>
+</div>
 
 <script>
 const CATS = [
-  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'] },
-  { name:'Color', vals:['Red','Blue','Ivory','Green','Yellow'] },
-  { name:'Drink', vals:['Tea','Coffee','Milk','OJ','Water'] },
-  { name:'Footwear', vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'] },
-  { name:'Pet', vals:['Dog','Snails','Fox','Horse','Zebra'] },
+{ name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'] },
+{ name:'Color', vals:['Red','Blue','Ivory','Green','Yellow'] },
+{ name:'Drink', vals:['Tea','Coffee','Milk','OJ','Water'] },
+{ name:'Footwear', vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'] },
+{ name:'Pet', vals:['Dog','Snails','Fox','Horse','Zebra'] },
 ];
 
 const NC=5, NV=5;
@@ -123,129 +124,163 @@ let AUTO = true;
 let st;
 
 function initState(){
-  st = Array.from({length:NC},()=>Array.from({length:NV},()=>
-    Array.from({length:NC},()=>Array(NV).fill(0))
-  ));
+st=Array.from({length:NC},()=>Array.from({length:NV},()=>
+Array.from({length:NC},()=>Array(NV).fill(0))));
 }
 
 function gst(ci,vi,cj,vj){ return st[ci][vi][cj][vj]; }
 
 function sst(ci,vi,cj,vj,v){
-  st[ci][vi][cj][vj]=v;
-  st[cj][vj][ci][vi]=v;
+st[ci][vi][cj][vj]=v;
+st[cj][vj][ci][vi]=v;
 }
 
 function toggleAuto(){
-  AUTO = !AUTO;
-  document.getElementById('autoBtn').textContent =
-    'Auto-Eliminate: ' + (AUTO ? 'ON' : 'OFF');
+AUTO=!AUTO;
+document.getElementById('autoBtn').textContent =
+'Auto-Eliminate: ' + (AUTO ? 'ON':'OFF');
 }
 
 function buildTable(){
-  const tbl=document.getElementById('tbl');
-  tbl.innerHTML='';
+const tbl=document.getElementById('tbl');
+tbl.innerHTML='';
 
-  CATS.forEach((rowCat,ci)=>{
-    rowCat.vals.forEach((val,vi)=>{
-      const row=tbl.insertRow();
+CATS.forEach((rowCat,ci)=>{
+rowCat.vals.forEach((val,vi)=>{
+const row=tbl.insertRow();
 
-      CATS.forEach((colCat,cj)=>{
-        colCat.vals.forEach((_,vj)=>{
-          const td=document.createElement('td');
+CATS.forEach((colCat,cj)=>{
+colCat.vals.forEach((_,vj)=>{
+const td=document.createElement('td');
 
-          const same = ci===cj;
+const same = ci===cj;
+td.className='cell '+(same?'dz':'s0');
 
-          td.className = 'cell ' + (same?'dz':'s0');
+if(!same){
+td.tabIndex=0;
+td.dataset.ci=ci;
+td.dataset.vi=vi;
+td.dataset.cj=cj;
+td.dataset.vj=vj;
 
-          if(!same){
-            td.dataset.ci=ci;
-            td.dataset.vi=vi;
-            td.dataset.cj=cj;
-            td.dataset.vj=vj;
+td.onclick=()=>cycleCell(ci,vi,cj,vj);
+td.onkeydown=(e)=>keyCell(e,ci,vi,cj,vj);
+}
 
-            td.onclick = ()=>cycleCell(ci,vi,cj,vj);
-          }
-
-          row.appendChild(td);
-        });
-      });
-    });
-  });
+row.appendChild(td);
+});
+});
+});
+});
 }
 
 function renderCell(ci,vi,cj,vj){
-  const val = gst(ci,vi,cj,vj);
+const v=gst(ci,vi,cj,vj);
 
-  for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
-    const td = document.querySelector(
-      `td[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`
-    );
-    if(!td) continue;
+for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
+const td=document.querySelector(
+`td[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`
+);
+if(!td) continue;
 
-    td.classList.remove('s0','s1','sm1');
+td.classList.remove('s0','s1','sm1');
 
-    if(val===1){
-      td.classList.add('s1');
-      td.textContent='✓';
-    } else if(val===-1){
-      td.classList.add('sm1');
-      td.textContent='';
-    } else {
-      td.classList.add('s0');
-      td.textContent='';
-    }
-  }
+if(v===1){
+td.classList.add('s1');
+td.textContent='✓';
+}
+else if(v===-1){
+td.classList.add('sm1');
+td.textContent='';
+}
+else{
+td.classList.add('s0');
+td.textContent='';
+}
+}
 }
 
 function renderAll(){
-  for(let ci=0;ci<NC;ci++)
-    for(let vi=0;vi<NV;vi++)
-      for(let cj=ci+1;cj<NC;cj++)
-        for(let vj=0;vj<NV;vj++)
-          renderCell(ci,vi,cj,vj);
+for(let ci=0;ci<NC;ci++)
+for(let vi=0;vi<NV;vi++)
+for(let cj=ci+1;cj<NC;cj++)
+for(let vj=0;vj<NV;vj++)
+renderCell(ci,vi,cj,vj);
 }
 
 function cycleCell(ci,vi,cj,vj){
-  const cur = gst(ci,vi,cj,vj);
+const cur=gst(ci,vi,cj,vj);
 
-  if(cur===0){
-    if(AUTO){
-      setYes(ci,vi,cj,vj);
-    } else {
-      sst(ci,vi,cj,vj,1);
-      renderCell(ci,vi,cj,vj);
-    }
-  }
-  else if(cur===1){
-    sst(ci,vi,cj,vj,-1);
-    renderCell(ci,vi,cj,vj);
-  }
-  else{
-    sst(ci,vi,cj,vj,0);
-    renderCell(ci,vi,cj,vj);
-  }
+if(cur===0){
+if(AUTO){
+setYes(ci,vi,cj,vj);
+}else{
+sst(ci,vi,cj,vj,1);
+renderCell(ci,vi,cj,vj);
+}
+}
+else if(cur===1){
+sst(ci,vi,cj,vj,-1);
+renderCell(ci,vi,cj,vj);
+}
+else{
+sst(ci,vi,cj,vj,0);
+renderCell(ci,vi,cj,vj);
+}
+}
+
+function keyCell(e,ci,vi,cj,vj){
+if(['+','y','Y'].includes(e.key)){
+e.preventDefault();
+if(AUTO){
+setYes(ci,vi,cj,vj);
+}else{
+sst(ci,vi,cj,vj,1);
+renderCell(ci,vi,cj,vj);
+}
+}
+else if(['-','n','N'].includes(e.key)){
+e.preventDefault();
+sst(ci,vi,cj,vj,-1);
+renderCell(ci,vi,cj,vj);
+}
+else if([' ','Backspace','Delete'].includes(e.key)){
+e.preventDefault();
+sst(ci,vi,cj,vj,0);
+renderCell(ci,vi,cj,vj);
+}
 }
 
 function setYes(ci,vi,cj,vj){
-  sst(ci,vi,cj,vj,1);
+sst(ci,vi,cj,vj,1);
 
-  for(let v=0;v<NV;v++){
-    if(v!==vj) sst(ci,vi,cj,v,-1);
-    if(v!==vi) sst(ci,v,cj,vj,-1);
-  }
+for(let v=0;v<NV;v++){
+if(v!==vj) sst(ci,vi,cj,v,-1);
+if(v!==vi) sst(ci,v,cj,vj,-1);
+}
 
-  renderAll();
+renderAll();
+}
+
+function clearMarks(){
+for(let ci=0;ci<NC;ci++)
+for(let vi=0;vi<NV;vi++)
+for(let cj=0;cj<NC;cj++)
+for(let vj=0;vj<NV;vj++)
+if(st[ci][vi][cj][vj]===-1)
+st[ci][vi][cj][vj]=0;
+
+renderAll();
 }
 
 function resetGrid(){
-  initState();
-  renderAll();
+initState();
+renderAll();
 }
 
 initState();
 buildTable();
 renderAll();
-
 </script>
 
 </body>
