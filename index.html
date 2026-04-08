@@ -4,40 +4,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Zebra Puzzle — Full Logic Grid</title>
+<title>The Zebra Puzzle</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-:root {
-–bg:      #0e0c0a;
-–surface: #1a1714;
-–surf2:   #221f1b;
-–border:  #3a3530;
-–bord2:   #4a4540;
-–accent:  #c8a96e;
-–acc2:    #8b6e3a;
-–text:    #e8e0d0;
-–text2:   #9a8e7e;
-–pos-bg:  #162b1e;
-–pos-fg:  #5dba7a;
-–neg-bg:  #0f0e0d;
-–neg-dot: #2e2a26;
-–hover:   #252018;
-–cat0: #c8a96e;
-–cat1: #7eb8c8;
-–cat2: #b87eae;
-–cat3: #7ec89a;
-–cat4: #c87e7e;
-–sz: 30px;
+/* Force dark background on everything */
+html, body {
+background-color: #0e0c0a !important;
+color: #e8e0d0;
+margin: 0; padding: 0;
+min-height: 100vh;
 }
 
 - { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
 font-family: ‘IBM Plex Mono’, monospace;
-background: var(–bg);
-color: var(–text);
-min-height: 100vh;
+background-color: #0e0c0a;
+color: #e8e0d0;
 padding: 24px 16px 60px;
 }
 
@@ -46,11 +30,11 @@ h1 {
 font-family: ‘Playfair Display’, serif;
 font-weight: 900;
 font-size: clamp(1.6rem, 4vw, 2.8rem);
-color: var(–accent);
+color: #c8a96e;
 letter-spacing: 0.06em;
 }
 .tagline {
-font-size: 0.6rem; color: var(–text2);
+font-size: 0.6rem; color: #9a8e7e;
 letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
 }
 
@@ -58,129 +42,162 @@ letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
 button {
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
-padding: 7px 16px; border: 1px solid var(–bord2);
-background: var(–surface); color: var(–text2); cursor: pointer; transition: all 0.15s;
+padding: 7px 16px;
+border: 1px solid #4a4540;
+background-color: #1a1714;
+color: #c8a96e;
+cursor: pointer;
+transition: all 0.15s;
 }
-button:hover { border-color: var(–accent); color: var(–accent); }
-button.p { border-color: var(–acc2); color: var(–accent); }
+button:hover { border-color: #c8a96e; background-color: #221f1b; }
 
 .leg {
 display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
-margin-bottom:16px; font-size:0.6rem; color:var(–text2);
+margin-bottom:16px; font-size:0.6rem; color:#9a8e7e;
 }
 .li { display:flex; align-items:center; gap:6px; }
 .ls {
-width:18px; height:18px; border:1px solid var(–bord2);
+width:18px; height:18px; border:1px solid #4a4540;
 display:flex; align-items:center; justify-content:center; font-size:0.75rem;
 }
-.lp { background:var(–pos-bg); color:var(–pos-fg); }
-.ln { background:var(–neg-bg); }
-.le { background:var(–surface); }
+.lp { background-color:#162b1e; color:#5dba7a; }
+.ln { background-color:#0f0e0d; }
+.le { background-color:#1a1714; }
 
 .banner {
-max-width:860px; margin:0 auto 16px; padding:9px 20px;
+max-width:900px; margin:0 auto 16px; padding:9px 20px;
 font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
 font-size:0.8rem; text-align:center; display:none; border:1px solid;
 }
-.ok  { background:#0d2015; color:var(–pos-fg); border-color:#2a6040; }
-.err { background:#200d0d; color:#c87e7e;        border-color:#602a2a; }
-.inf { background:#1a1500; color:var(–accent);  border-color:var(–acc2); }
+.ok  { background-color:#0d2015; color:#5dba7a; border-color:#2a6040; }
+.err { background-color:#200d0d; color:#c87e7e; border-color:#602a2a; }
+.inf { background-color:#1a1500; color:#c8a96e; border-color:#8b6e3a; }
 
-/* ── SCROLL WRAPPER ── */
 .scroll { overflow:auto; }
 
 table.grid {
 border-collapse: collapse;
 table-layout: fixed;
+background-color: #0e0c0a;
 }
 
 /* Dead corner */
-.dead { background:#070605; border:1px solid #181410; }
+.dead {
+background-color: #070605 !important;
+border: 1px solid #181410;
+}
 
-/* Column headers */
+/* Column category name headers */
 th.ch-cat {
 font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
 font-size:0.62rem; letter-spacing:0.06em;
-background:var(–surface); border:1px solid var(–border);
+background-color: #1a1714;
+border: 1px solid #3a3530;
 text-align:center; padding:3px 2px;
-height:24px; width:var(–sz); min-width:var(–sz);
+height:24px; width:30px; min-width:30px;
 }
+
+/* Column value name headers */
 th.ch-val {
-font-size:0.52rem; color:var(–text2);
-background:var(–surface); border:1px solid var(–border);
+font-size:0.52rem; color:#9a8e7e;
+background-color: #1a1714;
+border: 1px solid #3a3530;
 text-align:center; padding:0 1px;
-width:var(–sz); min-width:var(–sz); height:56px; vertical-align:bottom;
+width:30px; min-width:30px; height:60px; vertical-align:bottom;
 }
 th.ch-val span {
 display:block; writing-mode:vertical-rl;
 transform:rotate(180deg); white-space:nowrap;
 padding-bottom:4px; line-height:1;
 }
-/* category boundary on columns */
-th.cb { border-left-width:2px !important; }
 
-/* Row labels */
+/* Row category labels */
 td.rl-cat {
 font-family:‘Playfair Display’,serif; font-style:italic; font-weight:700;
 font-size:0.62rem; letter-spacing:0.06em;
-background:var(–surface); border:1px solid var(–border);
+background-color: #1a1714;
+border: 1px solid #3a3530;
 text-align:right; padding:0 5px;
-width:62px; min-width:62px; white-space:nowrap;
+width:68px; min-width:68px; white-space:nowrap;
 }
-td.rl-val {
-font-size:0.55rem; color:var(–text2);
-background:var(–surface); border:1px solid var(–border);
-text-align:right; padding:0 5px;
-width:62px; min-width:62px; white-space:nowrap;
-height:var(–sz);
-}
-/* category boundary on rows */
-td.rb { border-top-width:2px !important; }
 
-/* Data cells */
+/* Row value labels */
+td.rl-val {
+font-size:0.55rem; color:#9a8e7e;
+background-color: #1a1714;
+border: 1px solid #3a3530;
+text-align:right; padding:0 5px;
+width:68px; min-width:68px; white-space:nowrap;
+height:30px;
+}
+
+/* Data cells — base */
 td.cell {
-width:var(–sz); min-width:var(–sz); height:var(–sz);
-border:1px solid var(–border);
+width:30px; min-width:30px; height:30px;
+border: 1px solid #3a3530;
 cursor:pointer; text-align:center; vertical-align:middle;
 font-size:0.85rem; font-weight:600;
 position:relative; outline:none; user-select:none;
-transition:background 0.1s;
+transition:background-color 0.1s;
+background-color: #1a1714;
+color: transparent;
 }
-td.cell:focus { box-shadow:inset 0 0 0 2px var(–accent); z-index:2; }
-td.cell.s0  { background:var(–surface); color:transparent; }
-td.cell.s0:hover { background:var(–hover); }
-td.cell.s1  { background:var(–pos-bg); color:var(–pos-fg); }
-td.cell.s1:hover { background:#1e3a26; }
-td.cell.sm1 { background:var(–neg-bg); color:transparent; }
-td.cell.sm1:hover { background:#151210; }
+td.cell:focus { box-shadow:inset 0 0 0 2px #c8a96e; z-index:2; }
+
+/* States */
+td.cell.s0  { background-color: #1a1714; color: transparent; }
+td.cell.s0:hover { background-color: #252018; }
+td.cell.s1  { background-color: #162b1e; color: #5dba7a; }
+td.cell.s1:hover { background-color: #1e3a26; }
+td.cell.sm1 { background-color: #111010; color: transparent; }
+td.cell.sm1:hover { background-color: #161310; }
 td.cell.sm1::after {
 content:’·’; position:absolute; inset:0;
 display:flex; align-items:center; justify-content:center;
-color:var(–neg-dot); font-size:1.2rem; pointer-events:none;
+color:#2e2a26; font-size:1.2rem; pointer-events:none;
 }
-/* dead zone: same category */
-td.cell.dead-zone {
-background:#080604 !important; cursor:default; pointer-events:none;
-}
-td.cell.dead-zone::after { display:none; }
-/* column cat boundary */
-td.cell.cb { border-left-width:2px !important; }
-/* row cat boundary */
-td.cell.rb { border-top-width:2px !important; }
 
-/* ── CLUES ── */
+/* Dead zone (same category diagonal) */
+td.cell.dz {
+background-color: #080604 !important;
+cursor:default; pointer-events:none;
+}
+td.cell.dz::after { display:none; }
+
+/* Category boundary lines */
+.bdr-l { border-left:  2px solid #4a4540 !important; }
+.bdr-t { border-top:   2px solid #4a4540 !important; }
+
+/* Category color accents on borders */
+.cc0-l { border-left-color:  #c8a96e !important; }
+.cc0-t { border-top-color:   #c8a96e !important; }
+.cc0    { color: #c8a96e !important; border-right: 2px solid #c8a96e !important; border-bottom: 2px solid #c8a96e !important; }
+.cc1-l { border-left-color:  #7eb8c8 !important; }
+.cc1-t { border-top-color:   #7eb8c8 !important; }
+.cc1    { color: #7eb8c8 !important; border-right: 2px solid #7eb8c8 !important; border-bottom: 2px solid #7eb8c8 !important; }
+.cc2-l { border-left-color:  #b87eae !important; }
+.cc2-t { border-top-color:   #b87eae !important; }
+.cc2    { color: #b87eae !important; border-right: 2px solid #b87eae !important; border-bottom: 2px solid #b87eae !important; }
+.cc3-l { border-left-color:  #7ec89a !important; }
+.cc3-t { border-top-color:   #7ec89a !important; }
+.cc3    { color: #7ec89a !important; border-right: 2px solid #7ec89a !important; border-bottom: 2px solid #7ec89a !important; }
+.cc4-l { border-left-color:  #c87e7e !important; }
+.cc4-t { border-top-color:   #c87e7e !important; }
+.cc4    { color: #c87e7e !important; border-right: 2px solid #c87e7e !important; border-bottom: 2px solid #c87e7e !important; }
+
+/* Clues */
 .clues { max-width:780px; margin:28px auto 0; }
 .clues h2 {
 font-family:‘Playfair Display’,serif; font-size:0.8rem;
-color:var(–accent); letter-spacing:0.15em; text-transform:uppercase;
-border-bottom:1px solid var(–bord2); padding-bottom:8px; margin-bottom:12px;
+color:#c8a96e; letter-spacing:0.15em; text-transform:uppercase;
+border-bottom:1px solid #4a4540; padding-bottom:8px; margin-bottom:12px;
 }
 .cg { display:grid; grid-template-columns:1fr 1fr; gap:3px 28px; }
 .cl {
-font-size:0.6rem; line-height:1.6; color:var(–text2);
-display:flex; gap:7px; padding:2px 0; border-bottom:1px solid var(–border);
+font-size:0.6rem; line-height:1.6; color:#9a8e7e;
+display:flex; gap:7px; padding:2px 0; border-bottom:1px solid #3a3530;
 }
-.cn { color:var(–acc2); font-weight:600; min-width:18px; }
+.cn { color:#8b6e3a; font-weight:600; min-width:18px; }
 </style>
 
 </head>
@@ -192,7 +209,7 @@ display:flex; gap:7px; padding:2px 0; border-bottom:1px solid var(–border);
 </header>
 
 <div class="ctrl">
-  <button class="p" onclick="resetGrid()">Reset All</button>
+  <button onclick="resetGrid()">Reset All</button>
   <button onclick="checkSolution()">Check Solution</button>
   <button onclick="revealSolution()">Reveal Answer</button>
   <button onclick="clearMarks()">Clear Eliminations</button>
@@ -202,14 +219,11 @@ display:flex; gap:7px; padding:2px 0; border-bottom:1px solid var(–border);
   <div class="li"><div class="ls lp">✓</div>Yes / Confirmed</div>
   <div class="li"><div class="ls ln"></div>Eliminated</div>
   <div class="li"><div class="ls le"></div>Unknown</div>
-  <div class="li" style="color:#5a5248">· click cycles &nbsp;·&nbsp; +/Y = yes &nbsp;·&nbsp; -/N = no &nbsp;·&nbsp; space = clear ·</div>
+  <div class="li" style="color:#5a5248">· click to cycle &nbsp;·&nbsp; +/Y = yes &nbsp;·&nbsp; -/N = no &nbsp;·&nbsp; space = clear ·</div>
 </div>
 
 <div class="banner" id="banner"></div>
-
-<div class="scroll">
-  <table class="grid" id="tbl"></table>
-</div>
+<div class="scroll"><table class="grid" id="tbl"></table></div>
 
 <div class="clues">
   <h2>Clues</h2>
@@ -217,17 +231,16 @@ display:flex; gap:7px; padding:2px 0; border-bottom:1px solid var(–border);
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────────────────
 const CATS = [
-  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'], color:'--cat0' },
-  { name:'Color',       vals:['Red','Blue','Ivory','Green','Yellow'],       color:'--cat1' },
-  { name:'Drink',       vals:['Tea','Coffee','Milk','OJ','Water'],          color:'--cat2' },
-  { name:'Footwear',    vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'], color:'--cat3' },
-  { name:'Pet',         vals:['Dog','Snails','Fox','Horse','Zebra'],        color:'--cat4' },
+  { name:'Nationality', vals:['Dane','Scot','Greek','Bolivian','Japanese'], c:0 },
+  { name:'Color',       vals:['Red','Blue','Ivory','Green','Yellow'],       c:1 },
+  { name:'Drink',       vals:['Tea','Coffee','Milk','OJ','Water'],          c:2 },
+  { name:'Footwear',    vals:['Loafers','Sneakers','Birkenst.','Slippers','Flip-flops'], c:3 },
+  { name:'Pet',         vals:['Dog','Snails','Fox','Horse','Zebra'],        c:4 },
 ];
 const NC=5, NV=5;
 
-// Solution [house][catIdx] = valIdx
+// Solution: SOL[house][catIdx] = valIdx
 const SOL=[
   [0,4,4,1,2], // H1: Dane,Yellow,Water,Sneakers,Fox
   [3,1,0,2,3], // H2: Bolivian,Blue,Tea,Birkenst,Horse
@@ -235,12 +248,11 @@ const SOL=[
   [2,2,3,3,0], // H4: Greek,Ivory,OJ,Slippers,Dog
   [4,3,1,4,4], // H5: Japanese,Green,Coffee,Flip-flops,Zebra
 ];
-// sol_house[ci][vi] = house index for that attribute value
+// SH[ci][vi] = house index
 const SH=Array.from({length:NC},(_,ci)=>Array(NV).fill(-1));
 for(let h=0;h<NV;h++) for(let ci=0;ci<NC;ci++) SH[ci][SOL[h][ci]]=h;
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-// st[ci][vi][cj][vj]: does val vi of cat ci co-occur with val vj of cat cj?
+// State: st[ci][vi][cj][vj]
 let st;
 function initState(){
   st=Array.from({length:NC},()=>Array.from({length:NV},()=>
@@ -249,63 +261,58 @@ function initState(){
 function gst(ci,vi,cj,vj){return st[ci][vi][cj][vj];}
 function sst(ci,vi,cj,vj,v){st[ci][vi][cj][vj]=v; st[cj][vj][ci][vi]=v;}
 
-// ── BUILD TABLE ───────────────────────────────────────────────────────────────
 function buildTable(){
   const tbl=document.getElementById('tbl');
   tbl.innerHTML='';
 
-  // ── TWO HEADER ROWS ──
-  const rA=tbl.insertRow(), rB=tbl.insertRow();
-
-  // dead corner (spans 2 cols × 2 rows)
+  // Row A: dead corner + category name headers
+  const rA=tbl.insertRow();
   const corner=document.createElement('td');
   corner.rowSpan=2; corner.colSpan=2; corner.className='dead';
   rA.appendChild(corner);
 
   CATS.forEach((cat,cj)=>{
-    // Cat name header spanning NV cols
-    const thA=document.createElement('th');
-    thA.colSpan=NV; thA.className='ch-cat';
-    thA.style.color=`var(${cat.color})`;
-    thA.style.borderBottomColor=`var(${cat.color})`;
-    thA.style.borderBottomWidth='2px';
-    if(cj===0) thA.classList.add('cb');
-    thA.textContent=cat.name;
-    rA.appendChild(thA);
+    const th=document.createElement('th');
+    th.colSpan=NV;
+    th.className='ch-cat cc'+cat.c;
+    // add left border at each category start
+    if(cj>0) th.classList.add('bdr-l','cc'+cj+'-l');
+    th.textContent=cat.name;
+    rA.appendChild(th);
+  });
 
-    // Val name headers
+  // Row B: value name headers (rotated)
+  const rB=tbl.insertRow();
+  CATS.forEach((cat,cj)=>{
     cat.vals.forEach((v,vj)=>{
-      const thB=document.createElement('th');
-      thB.className='ch-val'+(vj===0?' cb':'');
-      if(vj===0){
-        thB.style.borderLeftColor=`var(${cat.color})`;
-      }
-      thB.innerHTML=`<span>${v}</span>`;
-      rB.appendChild(thB);
+      const th=document.createElement('th');
+      th.className='ch-val';
+      if(vj===0) th.classList.add('bdr-l','cc'+cj+'-l');
+      th.style.color = ['#c8a96e','#7eb8c8','#b87eae','#7ec89a','#c87e7e'][cj];
+      th.innerHTML=`<span>${v}</span>`;
+      rB.appendChild(th);
     });
   });
 
-  // ── DATA ROWS ──
+  // Data rows
   CATS.forEach((rowCat,ci)=>{
     rowCat.vals.forEach((val,vi)=>{
       const row=tbl.insertRow();
 
-      // Cat label (rowspan NV, first val only)
+      // Category label cell (rowspan NV)
       if(vi===0){
         const td=document.createElement('td');
-        td.rowSpan=NV; td.className='rl-cat rb';
-        td.style.color=`var(${rowCat.color})`;
-        td.style.borderRightColor=`var(${rowCat.color})`;
-        td.style.borderRightWidth='2px';
-        td.style.borderTopColor=`var(${rowCat.color})`;
+        td.rowSpan=NV;
+        td.className='rl-cat cc'+ci;
         td.textContent=rowCat.name;
         row.appendChild(td);
       }
 
-      // Val label
+      // Value label cell
       const vTd=document.createElement('td');
-      vTd.className='rl-val'+(vi===0?' rb':'');
-      if(vi===0) vTd.style.borderTopColor=`var(${rowCat.color})`;
+      vTd.className='rl-val';
+      if(vi===0) vTd.classList.add('bdr-t','cc'+ci+'-t');
+      vTd.style.color = ['#c8a96e','#7eb8c8','#b87eae','#7ec89a','#c87e7e'][ci];
       vTd.textContent=val;
       row.appendChild(vTd);
 
@@ -314,14 +321,9 @@ function buildTable(){
         colCat.vals.forEach((_,vj)=>{
           const td=document.createElement('td');
           const same=(ci===cj);
-          let cls='cell';
-          if(same) cls+=' dead-zone';
-          else cls+=' s0';
-          if(vj===0) cls+=' cb';
-          if(vi===0) cls+=' rb';
-          td.className=cls;
-          if(vj===0 && !same) td.style.borderLeftColor=`var(${colCat.color})`;
-          if(vi===0 && !same) td.style.borderTopColor=`var(${rowCat.color})`;
+          td.className='cell'+(same?' dz':' s0');
+          if(vj===0) td.classList.add('bdr-l','cc'+cj+'-l');
+          if(vi===0) td.classList.add('bdr-t','cc'+ci+'-t');
           if(!same){
             td.tabIndex=0;
             td.dataset.ci=ci; td.dataset.vi=vi;
@@ -336,16 +338,15 @@ function buildTable(){
   });
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
 function renderCell(ci,vi,cj,vj){
-  // render both orientations
+  const v=gst(ci,vi,cj,vj);
+  const cls = v===1?'s1':v===-1?'sm1':'s0';
   for(const [a,b,c,d] of [[ci,vi,cj,vj],[cj,vj,ci,vi]]){
     const td=document.querySelector(`td.cell[data-ci="${a}"][data-vi="${b}"][data-cj="${c}"][data-vj="${d}"]`);
     if(!td) continue;
-    const v=gst(ci,vi,cj,vj);
     td.classList.remove('s0','s1','sm1');
-    td.classList.add(v===1?'s1':v===-1?'sm1':'s0');
-    td.textContent=v===1?'✓':'';
+    td.classList.add(cls);
+    td.textContent = v===1 ? '✓' : '';
   }
 }
 function renderAll(){
@@ -354,7 +355,6 @@ function renderAll(){
       renderCell(ci,vi,cj,vj);
 }
 
-// ── LOGIC ─────────────────────────────────────────────────────────────────────
 function cycleCell(ci,vi,cj,vj){
   const cur=gst(ci,vi,cj,vj);
   if(cur===0) setYes(ci,vi,cj,vj);
@@ -368,15 +368,11 @@ function keyCell(e,ci,vi,cj,vj){
 }
 function setYes(ci,vi,cj,vj){
   sst(ci,vi,cj,vj,1);
-  // eliminate other vals in same colCat for this rowVal
   for(let v=0;v<NV;v++) if(v!==vj && gst(ci,vi,cj,v)!==1) sst(ci,vi,cj,v,-1);
-  // eliminate other vals in same rowCat for this colVal
   for(let v=0;v<NV;v++) if(v!==vi && gst(ci,v,cj,vj)!==1) sst(ci,v,cj,vj,-1);
-  // re-render this sub-block
   for(let v=0;v<NV;v++){ renderCell(ci,vi,cj,v); renderCell(ci,v,cj,vj); }
 }
 
-// ── CONTROLS ──────────────────────────────────────────────────────────────────
 function resetGrid(){ initState(); renderAll(); hideBanner(); }
 function clearMarks(){
   for(let ci=0;ci<NC;ci++) for(let vi=0;vi<NV;vi++)
@@ -390,8 +386,9 @@ function checkSolution(){
     for(let cj=ci+1;cj<NC;cj++) for(let vj=0;vj<NV;vj++)
       if(gst(ci,vi,cj,vj)===1){ any=true; if(SH[ci][vi]!==SH[cj][vj]) ok=false; }
   if(!any) return showBanner('inf','No entries yet — start solving!');
-  if(ok) showBanner('ok','✓ All confirmed entries are correct — keep going…');
-  else showBanner('err','✗ At least one entry is wrong. Review your deductions.');
+  showBanner(ok?'ok':'err', ok
+    ? '✓ All confirmed entries are correct — keep going…'
+    : '✗ At least one entry is wrong. Review your deductions.');
 }
 function revealSolution(){
   initState();
@@ -409,7 +406,6 @@ function showBanner(type,msg){
 }
 function hideBanner(){ document.getElementById('banner').style.display='none'; }
 
-// ── CLUES ─────────────────────────────────────────────────────────────────────
 const CLUES=[
   'There are five houses.',
   'The Scot lives in the red house.',
@@ -437,7 +433,6 @@ function buildClues(){
   });
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
 initState(); buildTable(); renderAll(); buildClues();
 </script>
 
