@@ -410,39 +410,6 @@ function setYes(ci, vi, cj, vj) {
     if (v !== vi && gst(ci, v, cj, vj) !== 1) sst(ci, v, cj, vj, -1);
   }
 
-  // Cross-category propagation:
-  // If A=vi is confirmed with B=vj, then for every other category C:
-  //   - whatever A=vi is confirmed with in C, B=vj must also be confirmed with in C
-  //   - whatever A=vi is eliminated from in C, B=vj must also be eliminated from in C
-  for (let ck = 0; ck < NC; ck++) {
-    if (ck === ci || ck === cj) continue;
-    for (let vk = 0; vk < NV; vk++) {
-      const aVal = gst(ci, vi, ck, vk);
-      const bVal = gst(cj, vj, ck, vk);
-      // If A=vi says YES to C=vk, then B=vj must also say YES to C=vk
-      if (aVal === 1  && bVal !== 1)  sst(cj, vj, ck, vk, 1);
-      // If A=vi says NO  to C=vk, then B=vj must also say NO  to C=vk
-      if (aVal === -1 && bVal !== 1)  sst(cj, vj, ck, vk, -1);
-      // And the reverse
-      if (bVal === 1  && aVal !== 1)  sst(ci, vi, ck, vk, 1);
-      if (bVal === -1 && aVal !== 1)  sst(ci, vi, ck, vk, -1);
-    }
-    // Eliminate other vals: no other row-val of ci can share cj's partner in ck
-    for (let v = 0; v < NV; v++) {
-      if (v !== vi) {
-        for (let vk = 0; vk < NV; vk++) {
-          if (gst(cj, vj, ck, vk) === 1 && gst(ci, v, ck, vk) !== 1)
-            sst(ci, v, ck, vk, -1);
-        }
-      }
-      if (v !== vj) {
-        for (let vk = 0; vk < NV; vk++) {
-          if (gst(ci, vi, ck, vk) === 1 && gst(cj, v, ck, vk) !== 1)
-            sst(cj, v, ck, vk, -1);
-        }
-      }
-    }
-  }
 
   renderAll();
 }
